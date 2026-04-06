@@ -1,0 +1,14 @@
+{
+  "name": "gemini-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server wrapping Google Gemini API for research tasks",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@modelcontextprotocol/sdk": "^1.10.2"
+  }
+}

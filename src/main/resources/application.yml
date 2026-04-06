@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: wms
+  datasource:
+    # Vercel에서 제공하는 드라이버 클래스 이름 (보통 자동 인식되지만 명시해주는 게 안전합니다)
+    driver-class-name: org.postgresql.Driver
+    # Vercel 대시보드에서 복사한 외부 접속용 URL
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+# MyBatis 설정
+mybatis:
+  # SQL 쿼리가 작성될 XML 파일의 위치
+  mapper-locations: classpath:mapper/*.xml
+  # DB 컬럼명(snake_case)을 Kotlin 객체 필드명(camelCase)으로 자동 매핑
+  configuration:
+    map-underscore-to-camel-case: true
+logging:
+  level:
+    "[com.cjlogistics.wms]": DEBUG
+server:
+  port: 8080
+  # 프론트엔드(React)에서 API를 호출할 수 있도록 CORS 허용을 위한 설정 (나중에 설정 클래스에서 구체화)

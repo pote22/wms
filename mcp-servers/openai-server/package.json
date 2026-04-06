@@ -1,0 +1,14 @@
+{
+  "name": "openai-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server wrapping OpenAI API for coding tasks",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "openai": "^4.97.0",
+    "@modelcontextprotocol/sdk": "^1.10.2"
+  }
+}
