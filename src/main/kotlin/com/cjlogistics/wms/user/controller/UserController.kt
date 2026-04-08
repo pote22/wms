@@ -1,11 +1,13 @@
 package com.cjlogistics.wms.user.controller
 
+import com.cjlogistics.wms.dto.Response
 import com.cjlogistics.wms.user.service.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.http.ResponseEntity
 
 @RestController
 @RequestMapping("/api/user")
@@ -14,10 +16,30 @@ class UserController(private val userService: UserService) {
     private val LOG = LoggerFactory.getLogger(UserController::class.java)
 
     @PostMapping("/login")
-    fun login(@RequestBody param : Map<String, Any>): Map<String, Any> {
+    fun login(@RequestBody paramMap : Map<String, Any>): ResponseEntity<Response> {
+        LOG.info("---> LOGIN Controller 호출")
 
-        LOG.info("---> UserController 호출")
-        
-        return userService.login(param)
+        return try {
+            val response = userService.login(paramMap)
+            ResponseEntity.ok(response)
+        } catch (ie : IllegalArgumentException) {
+            LOG.warn("Login failed: ${ie.message}")
+            ResponseEntity.status(401).body(Response(
+                resultCode      = "0002", 
+                resultMessage   = "로그인 정보가 일치하지 않습니다.", 
+                accessToken     = "", 
+                expireDate      = null, 
+                data            = null
+            ))
+        } catch (e: Exception) {
+            LOG.error("Login error: ${e.message}", e)
+            ResponseEntity.status(500).body(Response(
+                resultCode      = "9999", 
+                resultMessage   = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                accessToken     = "", 
+                expireDate      = null, 
+                data            = null
+            ))
+        }
     }
 }

@@ -39,6 +39,16 @@ class JwtProvider(private val jwtProperties: JwtProperties) {
             .subject
     }
 
+    // JWT 토큰에서 만료 날짜 추출
+    fun getExpireDt(token: String): Date {
+        return Jwts.parserBuilder()
+            .setSigningKey(secretKey)
+            .build()
+            .parseClaimsJws(token)
+            .body
+            .expiration
+    }
+
     // JWT 토큰 유효성 검사
     fun validateToken(token: String): Boolean {
         try {
@@ -48,5 +58,5 @@ class JwtProvider(private val jwtProperties: JwtProperties) {
             // 토큰이 유효하지 않거나 만료된 경우 예외 처리 (로그 등으로 기록 가능)
         }
         return false
-    }
+    }   
 }
