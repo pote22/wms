@@ -1,3 +1,14 @@
+server:
+  port: 8080
+  servlet:
+    encoding:
+      # UTF-8 인코딩 설정
+      charset: UTF-8
+      # 인코딩 활성화 
+      enabled: true 
+      #모든 요청과 응답에 UTF-8 인코딩 강제 적용
+      force: true  
+
 spring:
   application:
     name: wms
@@ -16,9 +27,19 @@ mybatis:
   # DB 컬럼명(snake_case)을 Kotlin 객체 필드명(camelCase)으로 자동 매핑
   configuration:
     map-underscore-to-camel-case: true
+    # null 값을 처리할 때 JDBC 타입을 'null'로 설정하여 NullPointerException 방지
+    jdbc-type-for-null: 'null'
+
+# 로깅 설정
 logging:
   level:
     "[com.cjlogistics.wms]": DEBUG
-server:
-  port: 8080
-  # 프론트엔드(React)에서 API를 호출할 수 있도록 CORS 허용을 위한 설정 (나중에 설정 클래스에서 구체화)
+
+security:
+  jwt:
+    # JWT 서명에 사용할 비밀 키 (실제 운영에서는 안전하게 관리해야 함)
+    secret      : CJLOGISTICS_ACCESS_SECRET_TOKEN_KEY_2026_1234567890 
+    # JWT 발급자 정보 (예: 애플리케이션 이름)         
+    issuer      : wms                                 
+    # JWT 토큰의 유효 기간 (초 단위, 예: 3600초 = 1시간)                  
+    expiration  : 3600
