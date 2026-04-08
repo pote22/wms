@@ -1,7 +1,9 @@
 package com.cjlogistics.wms.auth
 
+import org.springframework.context.annotation.Configuration
 import org.springframework.boot.context.properties.ConfigurationProperties
 
+@Configuration
 @ConfigurationProperties(prefix = "security.jwt")
 data class JwtProperties(
     val secret : String             = "CJLOGISTICS_ACCESS_SECRET_TOKEN_KEY_2026_1234567890",   // JWT 서명에 사용할 비밀 키 (실제 운영에서는 안전하게 관리해야 함)
