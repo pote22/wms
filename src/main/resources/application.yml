@@ -19,6 +19,9 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    hikari:
+      # 커넥션 생성 시마다 search_path 강제 설정 (Neon 풀러 환경에서 currentSchema URL 파라미터 미적용 대응)
+      connection-init-sql: SET search_path TO wms
 
 # MyBatis 설정
 mybatis:
