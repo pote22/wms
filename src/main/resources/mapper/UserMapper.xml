@@ -5,12 +5,17 @@
 <mapper namespace="com.cjlogistics.wms.user.mapper.UserMapper">
     <!-- 로그인 -->
     <select id="findByLogin" parameterType="map" resultType="map">
-        SELECT USER_ID      AS USERID
-             , USER_NM      AS USERNM
-             , AUTH_ID      AS AUTHID
-             , USER_STATUS  AS STATUS
+        SELECT USER_ID
+             , USER_NM
+             , ADMIN_YN
+             , USER_STS
+             , USE_YN
+             , ROLE
+             , PROFILE_IMG_URL
           FROM TB_USER
          WHERE USER_ID  = #{userId}
            AND PASSWORD = #{password}
+           AND USER_STS != '99'
+           AND USE_YN   = 'Y'
     </select>
 </mapper>

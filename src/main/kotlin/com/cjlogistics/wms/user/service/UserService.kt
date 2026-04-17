@@ -23,7 +23,7 @@ class UserService(private val userMapper: UserMapper, private val jwtProvider: J
         //LOG.info("---> UserService.login user: $user")
 
         // JWT 토큰 생성
-        var usernm      = user.get("usernm").toString()
+        val usernm      = user.get("USER_NM")?.toString() ?: user.get("userNm")?.toString() ?: ""
         var accessToken = jwtProvider.generateToken(usernm)
         var expireDate  = jwtProvider.getExpireDt(accessToken)
 
