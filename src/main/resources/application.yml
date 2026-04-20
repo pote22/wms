@@ -29,6 +29,7 @@ mybatis:
   mapper-locations: classpath:mapper/*.xml
   # DB 컬럼명(snake_case)을 Kotlin 객체 필드명(camelCase)으로 자동 매핑
   configuration:
+    # DB 컬럼명(snake_case)을 Kotlin 객체 필드명(camelCase)으로 자동 매핑
     map-underscore-to-camel-case: true
     # null 값을 처리할 때 JDBC 타입을 'null'로 설정하여 NullPointerException 방지
     jdbc-type-for-null: 'null'

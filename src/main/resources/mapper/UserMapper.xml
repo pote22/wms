@@ -18,4 +18,17 @@
            AND USER_STS != '99'
            AND USE_YN   = 'Y'
     </select>
+
+    <!-- 사용자 고객사&센터 목록 조회 -->
+    <select id="selectUserAuthWhList" parameterType="map" resultType="map">
+        SELECT SRVC_CD
+             , COALESCE(NULLIF(FN_GET_SRVC_NM(SRVC_CD), ''), '') AS SRVC_NM
+             , WH_CD
+             , COALESCE(NULLIF(FN_GET_WH_NM(SRVC_CD, WH_CD), ''), '') AS WH_NM
+             , BASE_YN
+          FROM TB_USER_AUTH
+         WHERE 1 = 1
+           AND USER_ID = #{userId}
+         ORDER BY BASE_YN DESC, SRVC_CD, WH_CD
+    </select>
 </mapper>

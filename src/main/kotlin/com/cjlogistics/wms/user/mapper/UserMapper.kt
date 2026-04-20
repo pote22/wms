@@ -5,4 +5,5 @@ import org.apache.ibatis.annotations.Mapper
 @Mapper
 interface UserMapper {
     fun findByLogin(request: Map<String, Any>): Map<String, Any>?
+    fun selectUserAuthWhList(request: Map<String, Any>): List<Map<String, Any>>
 }

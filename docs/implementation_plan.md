@@ -1,40 +1,138 @@
-# 로그인 검증 및 UI 최적화 통합 계획
+# WMS 백엔드 구현 계획 (Backend Implementation Plan)
 
-로그인 시 아이디와 비밀번호 입력 여부를 확인하여 팝업 메시지를 출력하고, 복잡한 MUI 임포트 구문을 축약하여 코드를 더 깔끔하게 정리하는 계획입니다.
+## 진행 현황 요약
 
-## 사용자 검토 필요 사항
+| 단계 | 내용 | 상태 |
+|------|------|------|
+| Phase 1 | UserMapper.xml 쿼리 개선 | ✅ 완료 |
+| Phase 2 | JWT Claims 확장 (JwtProvider) | ✅ 완료 |
+| Phase 3 | UserService generateToken 인자 수정 | ✅ 완료 |
+| Phase 4 | Spring Security 필터 체인 구성 (JWT 검증) | 🔲 미완료 |
+| Phase 5 | 사용자 고객사&센터 목록 조회 API | ✅ 완료 |
 
-> [!IMPORTANT]
-> 이 작업은 `Login.tsx` 파일의 구조를 개선하며, 오류 메시지뿐만 아니라 향후 다양한 사용자 피드백을 제공할 수 있는 기반(Snackbar)을 마련합니다.
+---
 
-## 제안된 변경 사항
+## Phase 1 — UserMapper.xml 쿼리 개선 ✅
 
-### 1. 공통 UI 모듈 구축 [Phase 1]
+**파일**: `src/main/resources/mapper/UserMapper.xml`
 
-임포트 구문을 축약하고 코드 가독성을 높이기 위해 공통 UI 컴포넌트 모듈을 생성합니다.
+### 변경 내용
+- 로그인 쿼리 반환 컬럼 추가: `USER_ID`, `USER_NM`, `ADMIN_YN`, `USER_STS`, `USE_YN`, `ROLE`, `PROFILE_IMG_URL`
+- 상태 필터 추가: `USER_STS != '99'` (탈퇴 제외), `USE_YN = 'Y'` (사용 중인 계정만)
+- XML 특수문자 이슈: `<>` 연산자 → `!=` 로 교체 (XML 파싱 오류 방지)
 
-#### [신규] [mui.ts](file:///c:/workspace/wms/frontend/src/components/common/mui.ts)
-- `Box`, `Typography`, `TextField`, `Button`, `Snackbar`, `Alert`, `Checkbox` 등 자주 사용하는 MUI 컴포넌트를 통합 배포합니다.
-- `Security`, `AccountCircle`, `Lock`, `Visibility`, `VisibilityOff`, `ArrowForward` 등 아이콘을 `Icons` 네임스페이스로 통합 배포합니다.
+---
 
-### 2. 로그인 로직 및 UI 개선 [Phase 2]
+## Phase 2 — JWT Claims 확장 ✅
 
-#### [수정] [Login.tsx](file:///c:/workspace/wms/frontend/src/login/Login.tsx)
-- **임포트 최적화**: 수십 줄의 임포트 코드를 단 한 줄(`import { Mui, Icons } from '../components/common/mui'`)로 축약합니다.
-- **검증 로직 추가**: `handleLogin` 함수에서 아이디/비밀번호 입력 여부를 확인하는 기능을 추가합니다.
-- **팝업 알림 추가**: MUI `Snackbar`와 `Alert` 컴포넌트를 사용하여 하단에 3초간 오류 메시지를 띄우는 기능을 구현합니다.
-- **상태 관리**: 팝업 노출 여부(`open`)와 메시지 내용(`message`)을 관리하는 상태 변수를 추가합니다.
+**파일**: `src/main/kotlin/com/cjlogistics/wms/auth/JwtProvider.kt`
 
-## 질문 사항
+### 변경 내용
+- `generateToken` 시그니처 변경: `String` → `Map<String, Any?>`
+- JWT payload에 아래 claims 추가:
+  - `sub` (subject): `user_id`
+  - `userNm`: `user_nm`
+  - `adminYn`: `admin_yn`
+  - `role`: `role`
+- 프론트엔드가 `accessToken` 하나만으로 사용자 정보를 디코딩할 수 있도록 설계
 
-1. 팝업 메시지는 3초 후에 자동으로 사라지게 설정할 예정입니다. 더 긴 시간이 필요하신가요?
-2. 입력 필드 검증 실패 시 테두리를 빨간색(error 상태)으로 강조하는 기능도 함께 구현할까요?
+### 주의사항 — MyBatis Map 키 규칙
+- `resultType="map"` 사용 시 `mapUnderscoreToCamelCase` 설정이 적용되지 않음
+- PostgreSQL은 컬럼명을 소문자로 반환 → Map 키가 `user_id`, `user_nm`, `admin_yn` 형태
+- `role`처럼 언더스코어 없는 컬럼만 그대로 사용 가능
+- JwtProvider에서 반드시 **snake_case 키**로 Map 조회해야 함
 
-## 검증 계획
+---
 
-### 자동 테스트
-- `npm run lint` 실행 결과, 모든 파일의 참조와 경로가 정상임을 확인합니다.
-- `npm run dev` 실행 중 화면이 정상적으로 렌더링되는지 확인합니다.
+## Phase 3 — UserService generateToken 인자 수정 ✅
 
-### 수동 검증
-- 아이디나 비밀번호를 입력하지 않고 로그인 버튼을 클릭했을 때, "사용자 아이디를 입력해주세요" 또는 "비밀번호를 입력해주세요"라는 팝업 메시지가 하단 중앙에 나타나는지 확인합니다.
+**파일**: `src/main/kotlin/com/cjlogistics/wms/user/service/UserService.kt`
+
+### 변경 내용
+- 기존: `jwtProvider.generateToken(usernm)` — USER_NM 문자열만 전달 (JwtProvider 시그니처 불일치로 컴파일 오류)
+- 수정: `jwtProvider.generateToken(user)` — user Map 전체 전달
+
+---
+
+## Phase 5 — 사용자 고객사&센터 목록 조회 API ✅
+
+### 변경 파일
+
+| 파일 | 작업 |
+|------|------|
+| `src/main/kotlin/com/cjlogistics/wms/user/mapper/UserMapper.kt` | `selectUserAuthWhList` 메서드 추가 |
+| `src/main/resources/mapper/UserMapper.xml` | `selectUserAuthWhList` 쿼리 추가 |
+| `src/main/kotlin/com/cjlogistics/wms/user/service/UserService.kt` | `getUserAuthWhList` 메서드 추가 |
+| `src/main/kotlin/com/cjlogistics/wms/user/controller/UserController.kt` | `POST /api/user/getUserAuthWhList` 엔드포인트 추가 |
+| `src/main/resources/WMS_FUNCTION.sql` | `fn_get_srvc_nm`, `fn_get_wh_nm` PostgreSQL 함수 정의 추가 |
+
+### 구현 내용
+
+**UserMapper.kt**
+```kotlin
+fun selectUserAuthWhList(request: Map<String, Any>): List<Map<String, Any>>
+```
+
+**UserMapper.xml — selectUserAuthWhList**
+```sql
+SELECT SRVC_CD
+     , COALESCE(NULLIF(FN_GET_SRVC_NM(SRVC_CD), ''), '') AS SRVC_NM
+     , WH_CD
+     , COALESCE(NULLIF(FN_GET_WH_NM(SRVC_CD, WH_CD), ''), '') AS WH_NM
+     , BASE_YN
+  FROM TB_USER_AUTH
+ WHERE USER_ID = #{userId}
+ ORDER BY BASE_YN DESC, SRVC_CD, WH_CD
+```
+
+**UserController.kt**
+```kotlin
+@PostMapping("/getUserAuthWhList")
+fun getUserAuthWhList(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response>
+```
+
+### DB 함수 (WMS_FUNCTION.sql)
+
+| 함수 | 설명 | 파라미터 |
+|------|------|----------|
+| `wms.fn_get_srvc_nm(p_srvc_cd)` | TB_SRVC에서 고객사명 조회 | SRVC_CD |
+| `wms.fn_get_wh_nm(p_srvc_cd, p_wh_cd)` | TB_WH에서 센터명 조회 | SRVC_CD, WH_CD |
+
+- 두 함수 모두 `WMS.` 스키마 prefix 명시
+- 데이터 없거나 예외 발생 시 `NULL` 반환 (plpgsql EXCEPTION 처리)
+
+### API 응답 구조
+```json
+{
+  "resultCode": "0000",
+  "resultMessage": "조회완료",
+  "data": [
+    { "srvc_cd": "GS01", "srvc_nm": "GS칼텍스", "wh_cd": "ICN01", "wh_nm": "인천GSC센터", "base_yn": "Y" },
+    { "srvc_cd": "GS01", "srvc_nm": "GS칼텍스", "wh_cd": "BUS01", "wh_nm": "부산센터", "base_yn": "N" }
+  ]
+}
+```
+
+---
+
+## Phase 4 — Spring Security 필터 체인 구성 🔲
+
+> JWT 발급은 완료. 다음 단계로 API 요청마다 토큰을 검증하는 필터가 필요합니다.
+
+### 작업 목록
+- [ ] `JwtAuthenticationFilter.kt` 생성
+  - `Authorization: Bearer <token>` 헤더에서 토큰 추출
+  - `JwtProvider.validateToken()` 으로 유효성 검사
+  - 만료/위변조 시 401 응답 반환
+  - 유효 시 `SecurityContextHolder`에 인증 정보 등록
+- [ ] `SecurityConfig.kt` 생성 (Spring Security 설정)
+  - `/api/user/login` — 인증 없이 허용 (permitAll)
+  - 나머지 `/api/**` — JWT 인증 필요 (authenticated)
+  - CORS 설정 (`WebConfig.kt`와 일원화 검토)
+  - CSRF 비활성화 (REST API 특성상)
+- [ ] `build.gradle` 의존성 확인
+  - `spring-boot-starter-security` 포함 여부 확인
+
+### 참고
+- 현재 `WebConfig.kt`에 CORS 설정이 있으므로 Security 필터와 중복 설정 주의
+- 필터 순서: `JwtAuthenticationFilter` → `UsernamePasswordAuthenticationFilter` 앞에 위치
