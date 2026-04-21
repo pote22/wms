@@ -9,6 +9,7 @@
 | Phase 3 | UserService generateToken 인자 수정 | ✅ 완료 |
 | Phase 4 | Spring Security 필터 체인 구성 (JWT 검증) | 🔲 미완료 |
 | Phase 5 | 사용자 고객사&센터 목록 조회 API | ✅ 완료 |
+| Phase 6 | DB 스키마 확장 (WMS_SCHEMA.sql — 전체 테이블 정의) | ✅ 완료 |
 
 ---
 
@@ -111,6 +112,63 @@ fun getUserAuthWhList(@RequestBody paramMap: Map<String, Any>): ResponseEntity<R
     { "srvc_cd": "GS01", "srvc_nm": "GS칼텍스", "wh_cd": "BUS01", "wh_nm": "부산센터", "base_yn": "N" }
   ]
 }
+```
+
+### 프론트엔드 연동 시 주의사항
+
+> Phase 2 주의사항과 동일한 이슈 — 이 API 소비 시 반드시 숙지
+
+- `resultType="map"` 사용으로 `mapUnderscoreToCamelCase: true` 설정이 **적용되지 않음**
+- PostgreSQL은 컬럼명을 소문자로 반환 → 응답 키가 `srvc_cd`, `srvc_nm`, `wh_cd`, `wh_nm`, `base_yn` (snake_case)
+- 프론트엔드 TypeScript 인터페이스도 반드시 **snake_case** 로 정의해야 함
+- camelCase(`srvcCd`)로 정의 시 모든 값이 `undefined`가 되어 드롭다운 미출력 (프론트엔드 연동 중 실제 발생한 이슈)
+
+---
+
+## Phase 6 — DB 스키마 확장 (WMS_SCHEMA.sql) ✅
+
+**파일**: `src/main/resources/WMS_SCHEMA.sql`
+
+### 추가된 테이블 목록
+
+| 테이블 | 설명 | 주요 컬럼 |
+|--------|------|-----------|
+| `TB_BOARD` | 게시판 (공지사항) | BOARD_ID, CONTENT(TEXT), VW_CNT, BOARD_TYPE, USER_ID, USE_YN |
+| `TB_COMM_BOARD_FILE` | 게시판 첨부파일 | FILE_ID, BOARD_ID, REF_TYPE, FILE_NM, FILE_SIZE, FILE_PATH |
+| `TB_VEHICLE` | 차량 마스터 | VEHICLE_NO, WH_CD, SRVC_CD, DRV_NM, HP_NO, TON_CLS_CD |
+| `TB_CLIENT` | 거래처 마스터 | CLIENT_CD, WH_CD, SRVC_CD, CLIENT_NM_KOR, BUSINESS_NO |
+| `TB_ITEM` | 품번 마스터 | PROD_CD, WH_CD, SRVC_CD, PROD_NM, PROD_CATEGORY, FIFO_YN |
+| `TB_ZONE` | 존 마스터 | ZONE_CD, WH_CD, SRVC_CD, ZONE_NM |
+| `TB_LOC` | 로케이션 마스터 | LOC_ID, ZONE_CD, WH_CD, SRVC_CD, LOC_CLS_CD |
+| `TB_STOCK_H` | 재고 헤더 | LOC_ID, ZONE_CD, WH_CD, SRVC_CD, PART_NO, STOCK_QTY |
+| `TB_STOCK_D` | 재고 상세 | + LOT_NO, PLT_YN, PLT_QTY, CARTON_QTY |
+| `TB_ITRN` | 트랜잭션 | ITRN_KEY, TRAN_TYPE(DP/WD/MV/AJ/TR), FROM/TO 정보 |
+| `TB_RECEIPT_H` | 입고 헤더 | IN_NO, IN_EXPECTED_DATE, STATUS(00/01/09) |
+| `TB_RECEIPT_D` | 입고 상세 | IN_EXPECTED_SEQ, OPEN_QTY, RECEIVED_QTY, LOT_NO |
+| `TB_ORDER_H` | 출고 헤더 | OUT_NO, STATUS(00~09), ALLOC_QTY, PICK_QTY |
+| `TB_ORDER_D` | 출고 상세 | OUT_EXPECTED_SEQ, INTEND_QTY, ALLOC_QTY |
+| `TB_ORDER_ALLOC` | 출고 할당/피킹 | PICK_NO, OUT_ZONE_CD, OUT_LOC_CD, PDA_YN |
+
+### 공지사항 관련 테이블 상세
+
+**`TB_BOARD`** — 공지사항 화면(Phase 11~12) 연동 대상
+```sql
+BOARD_ID    INTEGER         PK (시퀀스 채번)
+CONTENT     TEXT            본문 (Tiptap HTML 저장)
+VW_CNT      INTEGER         조회수
+BOARD_TYPE  VARCHAR(2)      게시분류 (00:일반, 99:긴급)
+USER_ID     VARCHAR(50)     FK → TB_USER
+USE_YN      VARCHAR(1)      게시여부 (Y/N)
+```
+
+**`TB_COMM_BOARD_FILE`** — 공지사항 첨부파일 연동 대상
+```sql
+FILE_ID     INTEGER         PK
+BOARD_ID    INTEGER         FK → TB_BOARD
+REF_TYPE    VARCHAR(10)     첨부타입
+FILE_NM     VARCHAR(500)    파일명
+FILE_SIZE   VARCHAR(50)     파일크기
+FILE_PATH   VARCHAR(1000)   파일 저장 경로
 ```
 
 ---
