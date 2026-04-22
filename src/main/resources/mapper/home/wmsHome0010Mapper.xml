@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+          "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  <mapper namespace="com.cjlogistics.wms.home.mapper.WmsHome0010Mapper">
+    <!-- 공지사항 조회 -->
+    <select id = "selectList" parameterType="map" resultType="map">
+        SELECT BOARD_ID												-- 게시판ID
+            , TITLE												    -- 제목
+            , CONTENT												-- 상세내용
+            , COALESCE(NULLIF(VW_CNT, 0), 0) AS VW_CNT				-- 조회수
+            , BOARD_TYPE											-- 게시판유형
+            , USER_ID												-- 작성자
+            , REG_ID												-- 등록자
+            , TO_CHAR(REG_DATE, 'YYYY-MM-DD') AS REG_DATE			-- 등록일자
+            , UPD_ID												-- 수정자
+            , TO_CHAR(UPD_DATE, 'YYYY-MM-DD') AS UPD_DATE			-- 수정일자
+        FROM TB_BOARD
+        WHERE 1 = 1
+        AND USE_YN = 'Y'
+        ORDER BY BOARD_ID DESC, REG_DATE DESC
+    </select>
+
+    <!-- 공지상세내용 저장&수정-->
+    <insert id = "saveNotice" parameterType="map">
+        MERGE INTO TB_BOARD AS T
+        USING ( 
+            SELECT #{boardId}::INTEGER AS BOARD_ID
+                 , #{title}            AS TITLE
+                 , #{content}          AS CONTENT
+                 , #{boardType}        AS BOARD_TYPE
+                 , #{userId}           AS USER_ID
+        ) AS S ON (T.BOARD_ID = S.BOARD_ID)
+         WHEN MATCHED THEN
+            UPDATE 
+               SET TITLE      = S.TITLE
+                 , CONTENT    = S.CONTENT
+                 , UPD_ID     = S.USER_ID
+                 , UPD_DATE   = NOW()
+         WHEN NOT MATCHED THEN
+            INSERT (
+                BOARD_ID
+              , TITLE
+              , CONTENT
+              , BOARD_TYPE
+              , USER_ID
+              , REG_ID
+              , REG_DATE)
+            VALUES (
+                nextval('WMS.SEQ_TB_BOARD')
+              , S.TITLE
+              , S.CONTENT
+              , '00'
+              , S.USER_ID
+              , S.USER_ID
+              , NOW())
+    </insert>
+
+    <!-- 공지사항 삭제 -->
+    <update id="deleteNotice" parameterType="map">
+        UPDATE TB_BOARD
+           SET USE_YN = 'N'
+             , UPD_ID = #{userId}
+             , UPD_DATE = NOW()
+         WHERE BOARD_ID IN 
+        <foreach item="boardId" collection="boardIds" open="(" separator="," close=")">
+            #{boardId}
+        </foreach>
+    </update>
+
+    <!-- 파일 목록 조회 -->
+    <select id = "selectFileList" parameterType="map" resultType="map">
+        SELECT FILE_ID
+             , BOARD_ID
+             , FILE_NM
+             , FILE_SIZE
+             , FILE_PATH
+          FROM TB_COMM_BOARD_FILE
+         WHERE 1 = 1
+           AND BOARD_ID = #{ boardId }
+         ORDER BY FILE_ID 
+    </select>
+
+    <!-- 파일 단건조회(file_id 기준)-->
+    <select id = "selectFileInfo" parameterType="map" resultType="map">
+        SELECT FILE_ID
+             , BOARD_ID
+             , FILE_NM
+             , FILE_SIZE
+             , FILE_PATH
+          FROM TB_COMM_BOARD_FILE
+         WHERE 1 = 1
+           AND FILE_ID = #{ fileId }  
+    </select>
+
+    <!-- 파일 저장 -->
+    <insert id="insertFile" parameterType="map">
+        INSERT TB_COMM_BOARD_FILE (
+             FILE_ID
+           , BOARD_ID
+           , REF_TYPE
+           , FILE_NM
+           , FILE_SIZE
+           , FILE_PATH
+           , REG_ID
+           , REG_DATE
+        ) VALUE (
+             nextval('WMS.SEQ_TB_COMM_BOARD_FILE')
+           , #{boardId}
+           , 'NOTICE'
+           , #{fileNm}
+           , #{fileSize}
+           , #{filePath}
+           , #{userId}
+           , NOW()
+        )
+    </insert>
+
+    <!-- 파일 삭제 -->
+    <delete id="deleteFile" parameterType="map">
+        DELETE 
+          FROM TB_COMM_BOARD_FILE
+         WHERE 1 = 1
+           AND FILE_ID = #{fileId}
+    </delete>
+  </mapper>

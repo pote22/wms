@@ -22,11 +22,21 @@ spring:
     hikari:
       # 커넥션 생성 시마다 search_path 강제 설정 (Neon 풀러 환경에서 currentSchema URL 파라미터 미적용 대응)
       connection-init-sql: SET search_path TO wms
+  servlet:
+    # 파일업로드 : 최대 요청용량(20MB)
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+## 파일 업로드 설정
+file:
+  storage : local
+  upload-path: c:/workspace/wms_view/uploads
 
 # MyBatis 설정
 mybatis:
   # SQL 쿼리가 작성될 XML 파일의 위치
-  mapper-locations: classpath:mapper/*.xml
+  mapper-locations: classpath:mapper/**/*.xml
   # DB 컬럼명(snake_case)을 Kotlin 객체 필드명(camelCase)으로 자동 매핑
   configuration:
     # DB 컬럼명(snake_case)을 Kotlin 객체 필드명(camelCase)으로 자동 매핑

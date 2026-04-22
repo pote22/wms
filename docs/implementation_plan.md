@@ -173,6 +173,120 @@ FILE_PATH   VARCHAR(1000)   파일 저장 경로
 
 ---
 
+## Phase 7 — 공지사항 API 구현 (WMS_HOME_0010) ✅
+
+**작업일자**: 2026-04-22
+
+### DB 사전 작업 (직접 실행 필요)
+
+```sql
+-- 1. TB_BOARD TITLE 컬럼 추가
+ALTER TABLE WMS.TB_BOARD ADD COLUMN TITLE VARCHAR(500) NULL;
+COMMENT ON COLUMN WMS.TB_BOARD.TITLE IS '제목';
+
+-- 2. BOARD_ID 시퀀스 생성
+CREATE SEQUENCE WMS.SEQ_TB_BOARD START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+ALTER TABLE WMS.TB_BOARD ALTER COLUMN BOARD_ID SET DEFAULT nextval('WMS.SEQ_TB_BOARD');
+SELECT setval('WMS.SEQ_TB_BOARD', COALESCE((SELECT MAX(BOARD_ID) FROM WMS.TB_BOARD), 0));
+
+-- TB_COMM_BOARD_FILE FILE_ID 시퀀스도 동일하게 필요
+```
+
+### 변경 파일
+
+| 파일 | 작업 |
+|------|------|
+| `src/main/resources/application.yml` | mapper-locations `classpath:mapper/*.xml` → `classpath:mapper/**/*.xml` |
+| `src/main/kotlin/.../home/controller/HomeController.kt` | 공지사항 Controller 신규 생성 |
+| `src/main/kotlin/.../home/service/WmsHome0010Service.kt` | 공지사항 Service 신규 생성 |
+| `src/main/kotlin/.../home/mapper/WmsHome0010Mapper.kt` | 공지사항 Mapper 인터페이스 신규 생성 |
+| `src/main/resources/mapper/home/wmsHome0010Mapper.xml` | 공지사항 쿼리 XML 신규 생성 |
+
+### API 엔드포인트
+
+| 메서드 | URL | 설명 |
+|--------|-----|------|
+| POST | `/api/home/getList` | 공지사항 목록 조회 (CONTENT 포함) |
+| POST | `/api/home/saveList` | 공지사항 저장/수정 (MERGE 처리) |
+| POST | `/api/home/deleteList` | 공지사항 삭제 (논리 삭제, 다건) |
+
+### 구현 주요 내용
+
+**Mapper 메서드**
+```kotlin
+fun selectList(paramMap: Map<String, Any>): List<Map<String, Any>>
+fun saveNotice(paramMap: Map<String, Any>): Int
+fun deleteNotice(paramMap: Map<String, Any>): Int
+```
+
+**saveNotice — PostgreSQL MERGE 문 사용 (15+ 표준 문법)**
+- `boardId` null 전송 시 → NOT MATCHED → INSERT (신규)
+- `boardId` 값 전송 시 → MATCHED → UPDATE (수정)
+- BOARD_ID 채번: `nextval('WMS.SEQ_TB_BOARD')`
+- INSERT 시 `BOARD_TYPE` 고정값 `'NOTICE'` 적용, `USE_YN = 'Y'`
+
+**deleteNotice — 논리 삭제 + 다건 처리**
+- `USE_YN = 'N'` 으로 논리 삭제
+- `foreach`로 `boardIds` 리스트 IN 절 처리
+
+**삭제 예외 처리**
+- Service에서 `boardIds` 누락/빈 리스트 시 `IllegalArgumentException` 발생
+- Controller에서 별도 catch → HTTP 400 + `resultCode: "0002"` + 실제 메시지 반환
+- 프론트 팝업에서 `resultCode !== "0000"` 시 `resultMessage` 출력
+
+### 설계 결정 사항
+- 상세 조회 API 미구현 — 목록 조회 시 CONTENT 포함하여 프론트에서 보유한 데이터 활용
+- 조회수(VW_CNT) 기능 미사용 — 컬럼은 유지
+- Insert/Update를 MERGE 단일 쿼리로 통합 (오라클 친화적 문법 채택)
+
+---
+
+## Phase 8 — 공지사항 프론트엔드 API 연동 (WMS_HOME_0010) ✅
+
+**작업일자**: 2026-04-22
+
+### 변경 파일
+
+| 파일 | 작업 |
+|------|------|
+| `src/api/common/index.ts` | `API_HOME_ROOT` 상수 추가 |
+| `src/api/home/home_0010Service.ts` | 공지사항 API 서비스 신규 작성 |
+| `src/pages/Home/cj_wms_home_0010.tsx` | Mock 데이터 제거 → 실 API 연동 |
+
+### API 서비스 (`home_0010Service.ts`)
+
+| 함수 | URL | 설명 |
+|------|-----|------|
+| `getList` | `POST /api/home/getList` | 공지사항 목록 조회 |
+| `saveNotice` | `POST /api/home/saveList` | 공지사항 저장/수정 |
+| `deleteNotice` | `POST /api/home/deleteList` | 공지사항 삭제 |
+
+**인터페이스 (`Notice`)**
+```ts
+interface Notice {
+    board_id: number; title: string; content: string;
+    vw_cnt: number; board_type: string; user_id: string;
+    reg_id: string; reg_date: string; upd_id: string; upd_date: string;
+}
+```
+> 응답 키는 snake_case (PostgreSQL 소문자 반환 + resultType="map" 특성)
+
+### 화면 연동 주요 내용 (`cj_wms_home_0010.tsx`)
+
+- **userId**: `getTokenPayload()?.userId` 로 JWT payload에서 추출
+- **목록 조회**: 마운트 시 `useEffect`로 `getList` 호출, 첫 번째 항목 자동 선택
+- **에디터 content**: `selectedNoticeId` 변경 시 별도 `useEffect`로 자동 업데이트
+- **저장**: `titleInputRef`로 제목 읽기, `editor.getHTML()`로 본문 추출 → `saveNotice` 호출 (신규/수정 MERGE)
+- **삭제**: `deleteNotice` 호출, 백엔드 오류 메시지 팝업 출력
+- **조회 버튼**: `fetchList` 직접 호출로 목록 갱신
+- **NEW 배지**: `reg_date` 기준 7일 이내 자동 계산
+- **타입 변경**: `selectedNoticeId` / `checkedIds` → `number` 타입
+
+### 주의사항
+- `Response` 인터페이스의 데이터 필드명이 `resultData` (백엔드 `data`와 다름) — 프론트/백 필드명 일치 여부 실 테스트 시 확인 필요
+
+---
+
 ## Phase 4 — Spring Security 필터 체인 구성 🔲
 
 > JWT 발급은 완료. 다음 단계로 API 요청마다 토큰을 검증하는 필터가 필요합니다.
