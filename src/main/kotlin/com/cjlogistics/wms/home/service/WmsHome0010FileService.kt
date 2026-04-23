@@ -42,7 +42,7 @@ class WmsHome0010FileService(
                             "boardId" to boardId,
                             "userId" to userId,
                             "fileNm" to (file.originalFilename ?: "unknown"),
-                            "fileSize" to (String.format("%.1f MB", file.size / (1024.0 * 1024.0)),
+                            "fileSize" to String.format("%.1f MB", file.size / (1024.0 * 1024.0)),
                             "filePath" to filePath,
                     )
             )

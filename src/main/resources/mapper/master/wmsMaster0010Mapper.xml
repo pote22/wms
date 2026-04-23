@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+          "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  <mapper namespace="com.cjlogistics.wms.master.mapper.WmsMaster0010Mapper">
+    <!-- 차량관리 목록조회 -->
+    <select id="selectVehicleList" parameterType="map" resultType="map">
+        SELECT SRVC_CD
+             , COALESCE(NULLIF(FN_GET_SRVC_NM(SRVC_CD), ''), '') AS SRVC_NM
+             , WH_CD
+             , COALESCE(NULLIF(FN_GET_WH_NM(SRVC_CD, WH_CD), ''), '') AS WH_NM
+             , VEHICLE_NO
+             , DRV_NM
+             , HP_NO
+             , TON_CLS_CD
+             , USE_YN
+             , REG_ID
+             , TO_CHAR(REG_DATE, 'YYYY-MM-DD') AS REG_DATE			
+             , UPD_ID			
+             , TO_CHAR(UPD_DATE, 'YYYY-MM-DD') AS UPD_DATE
+          FROM TB_VEHICLE 
+         WHERE 1 = 1
+           AND SRVC_CD = #{srvcCd}
+           AND WH_CD = #{whCd}
+           <if test="vehicleNo != null and vehicleNo != ''">
+           AND VEHICLE_NO LIKE '%' || #{vehicleNo} || '%'
+           </if>
+           <if test="useYn != null and useYn != ''">
+           AND USE_YN = #{useYn}
+           </if>
+         ORDER BY VEHICLE_NO
+    </select>
+
+    <!-- 차량관리 정보 저장-->
+    <insert id="mergeVehicleInfo" parameterType="map">
+        MERGE INTO TB_VEHICLE T
+        USING (
+            SELECT #{srvcCd} AS SRVC_CD
+                 , #{whCd} AS WH_CD
+                 , #{vehicleNo} AS VEHICLE_NO
+                 , #{drvNm} AS DRV_NM
+                 , #{hpNo} AS HP_NO
+                 , #{tonClsCd} AS TON_CLS_CD
+                 , #{useYn} AS USE_YN
+                 , #{userId} AS USER_ID
+        ) AS S ON (T.SRVC_CD = S.SRVC_CD
+              AND T.WH_CD = S.WH_CD
+              AND T.VEHICLE_NO = S.VEHICLE_NO)
+         WHEN MATCHED THEN
+            UPDATE
+               SET DRV_NM = S.DRV_NM
+                 , TON_CLS_CD = S.TON_CLS_CD
+                 , HP_NO = S.HP_NO
+                 , USE_YN = S.USE_YN
+                 , UPD_ID = S.USER_ID
+                 , UPD_DATE = NOW()
+         WHEN NOT MATCHED THEN
+            INSERT (
+                SRVC_CD
+              , WH_CD
+              , VEHICLE_NO
+              , DRV_NM
+              , HP_NO
+              , TON_CLS_CD
+              , USE_YN
+              , REG_ID
+              , REG_DATE
+            ) VALUES (
+                S.SRVC_CD
+              , S.WH_CD
+              , S.VEHICLE_NO
+              , S.DRV_NM
+              , S.HP_NO
+              , S.TON_CLS_CD
+              , S.USE_YN
+              , S.USER_ID
+              , NOW()
+            )
+    </insert>
+    
+    <!-- 차량관리 정보 삭제-->
+    <delete id="deleteVehicleInfo" parameterType="map">
+        DELETE 
+          FROM TB_VEHICLE
+         WHERE 1 = 1
+           AND SRVC_CD = #{srvcCd}
+           AND WH_CD = #{whCd}
+           AND VEHICLE_NO IN
+           <foreach item="vehicleNo" collection="vehicleNos" open="(" separator="," close=")">
+              #{vehicleNo}
+           </foreach>
+    </delete>
+  </mapper>

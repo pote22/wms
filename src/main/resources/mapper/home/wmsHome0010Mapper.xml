@@ -21,6 +21,11 @@
         ORDER BY BOARD_ID DESC, REG_DATE DESC
     </select>
 
+    <!-- 게시판ID 채번 -->
+    <select id="getNextBoardId" resultType="int">
+        SELECT nextval('WMS.SEQ_TB_BOARD')
+    </select>
+
     <!-- 공지상세내용 저장&수정-->
     <insert id = "saveNotice" parameterType="map">
         MERGE INTO TB_BOARD AS T
@@ -47,10 +52,10 @@
               , REG_ID
               , REG_DATE)
             VALUES (
-                nextval('WMS.SEQ_TB_BOARD')
+                S.BOARD_ID
               , S.TITLE
               , S.CONTENT
-              , '00'
+              , S.BOARD_TYPE
               , S.USER_ID
               , S.USER_ID
               , NOW())
@@ -95,7 +100,7 @@
 
     <!-- 파일 저장 -->
     <insert id="insertFile" parameterType="map">
-        INSERT TB_COMM_BOARD_FILE (
+        INSERT INTO TB_COMM_BOARD_FILE (
              FILE_ID
            , BOARD_ID
            , REF_TYPE
@@ -104,7 +109,7 @@
            , FILE_PATH
            , REG_ID
            , REG_DATE
-        ) VALUE (
+        ) VALUES (
              nextval('WMS.SEQ_TB_COMM_BOARD_FILE')
            , #{boardId}
            , 'NOTICE'

@@ -10,6 +10,8 @@
 | Phase 4 | Spring Security 필터 체인 구성 (JWT 검증) | 🔲 미완료 |
 | Phase 5 | 사용자 고객사&센터 목록 조회 API | ✅ 완료 |
 | Phase 6 | DB 스키마 확장 (WMS_SCHEMA.sql — 전체 테이블 정의) | ✅ 완료 |
+| Phase 9 | 공지사항 첨부파일 백엔드 구현 | ✅ 완료 |
+| Phase 10 | 공지사항 첨부파일 프론트엔드 연동 | ✅ 완료 |
 
 ---
 
@@ -284,6 +286,124 @@ interface Notice {
 
 ### 주의사항
 - `Response` 인터페이스의 데이터 필드명이 `resultData` (백엔드 `data`와 다름) — 프론트/백 필드명 일치 여부 실 테스트 시 확인 필요
+
+---
+
+## Phase 9 — 공지사항 첨부파일 백엔드 구현 (WMS_HOME_0010) ✅
+
+**작업일자**: 2026-04-23
+
+### DB 사전 작업 (직접 실행 필요)
+
+```sql
+-- TB_COMM_BOARD_FILE FILE_ID 시퀀스 생성
+CREATE SEQUENCE WMS.SEQ_TB_COMM_BOARD_FILE START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+ALTER TABLE WMS.TB_COMM_BOARD_FILE ALTER COLUMN FILE_ID SET DEFAULT nextval('WMS.SEQ_TB_COMM_BOARD_FILE');
+SELECT setval('WMS.SEQ_TB_COMM_BOARD_FILE', COALESCE((SELECT MAX(FILE_ID) FROM WMS.TB_COMM_BOARD_FILE), 0));
+```
+
+### 변경 파일
+
+| 파일 | 작업 |
+|------|------|
+| `src/main/resources/application.yml` | multipart 20MB 설정, file.storage/file.upload-path 추가 |
+| `src/main/kotlin/.../storage/service/FileStorageService.kt` | 파일 저장 인터페이스 신규 생성 |
+| `src/main/kotlin/.../storage/service/LocalFileStorageService.kt` | 로컬 파일 저장 구현체 신규 생성 |
+| `src/main/kotlin/.../home/mapper/WmsHome0010Mapper.kt` | 파일 관련 Mapper 메서드 추가 |
+| `src/main/resources/mapper/home/wmsHome0010Mapper.xml` | 파일 관련 쿼리 추가, saveNotice INSERT 수정 |
+| `src/main/kotlin/.../home/service/WmsHome0010Service.kt` | saveList에 boardId 응답 포함 수정 |
+| `src/main/kotlin/.../home/service/WmsHome0010FileService.kt` | 파일 Service 신규 생성 |
+| `src/main/kotlin/.../home/controller/HomeController.kt` | 파일 엔드포인트 4개 추가 |
+
+### API 엔드포인트
+
+| 메서드 | URL | 설명 |
+|--------|-----|------|
+| POST | `/api/home/getFileList` | 공지사항 첨부파일 목록 조회 |
+| POST | `/api/home/uploadFile` | 첨부파일 업로드 (multipart/form-data) |
+| GET  | `/api/home/downloadFile/{fileId}` | 첨부파일 다운로드 |
+| POST | `/api/home/deleteFile` | 첨부파일 삭제 (물리 삭제 + DB 삭제) |
+
+### 파일 저장 전략
+
+- `FileStorageService` 인터페이스로 저장 방식 추상화
+- `@ConditionalOnProperty(name = ["file.storage"], havingValue = "local")` 로 구현체 전환
+- 개발: `LocalFileStorageService` → 로컬 디스크 (`c:/workspace/wms_view/uploads/board/{boardId}/`)
+- 운영 전환 시: `S3FileStorageService` 추가 + `application.yml`에서 `file.storage: s3` 로 변경만 하면 됨
+- 저장 파일명: `{UUID}_{원본파일명}` (중복 방지)
+
+### 설계 결정 사항
+
+- 게시글 논리 삭제(`USE_YN='N'`) 시 첨부파일은 **유지** — 파일 삭제는 편집 중 개별 삭제 시에만 처리
+- 신규 저장 시 `getNextBoardId()`로 시퀀스 채번 후 MERGE → boardId를 응답에 포함 → 프론트에서 해당 boardId로 파일 업로드
+
+### 수정 완료 항목 (6개, 2026-04-23)
+
+| # | 파일 | 내용 |
+|---|------|------|
+| 1 | `WmsHome0010FileService.kt` | `"fileSize" to (String.format(...)` → 불필요한 괄호 제거 |
+| 2 | `HomeController.kt` | `WmsHome0010FileService` 주입 + 파일 엔드포인트 4개 추가 |
+| 3 | `WmsHome0010Mapper.kt` | `fun getNextBoardId(): Int` 추가 |
+| 4 | `wmsHome0010Mapper.xml` | `insertFile` — `INSERT INTO`, `VALUES` 오타 수정 |
+| 5 | `wmsHome0010Mapper.xml` | `getNextBoardId` 쿼리 추가 + saveNotice INSERT `nextval(...)` → `S.BOARD_ID` 변경 |
+| 6 | `WmsHome0010Service.kt` | saveList — 신규 시 `getNextBoardId()` 채번 후 `data`에 `board_id` 담아 반환 |
+
+---
+
+## Phase 10 — 공지사항 첨부파일 프론트엔드 연동 (WMS_HOME_0010) ✅
+
+**작업일자**: 2026-04-23
+
+### 변경 파일
+
+| 파일 | 작업 |
+|------|------|
+| `src/api/home/home_0010Service.ts` | `AttachedFile`, `FileResponse` 인터페이스 추가 + 파일 API 함수 4개 추가 |
+| `src/pages/Home/hooks/useNoticeList.ts` | `handleSave`에 `onSaved?: (boardId: number) => void` 콜백 파라미터 추가 |
+| `src/pages/Home/cj_wms_home_0010.tsx` | `AttachedFile` 인터페이스 확장 + mock 데이터 제거 → 실 API 연동 |
+
+### API 서비스 (`home_0010Service.ts`)
+
+| 함수 | URL | 설명 |
+|------|-----|------|
+| `getFileList` | `POST /api/home/getFileList` | 첨부파일 목록 조회 |
+| `uploadFile` | `POST /api/home/uploadFile` | 파일 업로드 (FormData, multipart) |
+| `downloadFile` | `GET /api/home/downloadFile/{fileId}` | 파일 다운로드 (Blob) |
+| `deleteFile` | `POST /api/home/deleteFile` | 파일 삭제 |
+
+**인터페이스**
+```ts
+interface AttachedFile { file_id, board_id, file_nm, file_size, file_path }
+interface FileResponse  { resultCode, resultMessage, data: AttachedFile[] | null }
+```
+
+> `downloadFile`은 `transaction` 인스턴스 직접 사용 (`responseType: 'blob'`) — Auth 헤더 자동 포함, 파일명은 컴포넌트에서 전달
+
+### `useNoticeList.ts` 변경
+
+```ts
+handleSave(title: string, onSaved?: (boardId: number) => void)
+// 저장 성공 시 res.data[0].board_id를 onSaved 콜백으로 전달
+```
+
+### `cj_wms_home_0010.tsx` 주요 구현
+
+**`AttachedFile` 인터페이스 확장**
+```ts
+interface AttachedFile {
+    id: string;
+    fileId?: number;     // DB file_id (없으면 미업로드 대기 파일)
+    name: string; size: string; type: string;
+    pendingFile?: File;  // 저장 전 업로드용 원본 File 객체
+}
+```
+
+**연동 흐름**
+- 공지 선택 시: `loadFileList(boardId)` → `getFileList` API → `attachedFiles` 갱신
+- 파일 추가 시: `pendingFile` 속성이 있는 항목으로 상태에 추가, UI에 `(저장 대기)` 표시
+- 저장 버튼 클릭: `handleSaveClick` → 공지 저장 → `onSaved(boardId)` 콜백 → 대기 파일 `uploadFile` → `loadFileList` 재조회
+- 파일명 클릭: `fileId` 있는 파일만 `downloadFile` 호출 → Blob 브라우저 다운로드
+- 파일 제거(편집 중): `fileId` 있는 파일 → `deleteFile` API 호출 후 상태 제거 / 대기 파일 → 상태에서만 제거
 
 ---
 

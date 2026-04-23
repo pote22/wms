@@ -24,13 +24,17 @@ class WmsHome0010Service(private val wmsHome0010Mapper: WmsHome0010Mapper) {
 
     fun saveList(paramMap: Map<String, Any>): Response {
         LOG.info("---> SAVE_LIST Service 호출")
-        wmsHome0010Mapper.saveNotice(paramMap)
+        val boardId =
+                (paramMap["boardId"] as? Number)?.toInt()?.takeIf { it > 0 }
+                        ?: wmsHome0010Mapper.getNextBoardId()
+        val newParamMap = paramMap.toMutableMap().apply { put("boardId", boardId) }
+        wmsHome0010Mapper.saveNotice(newParamMap)
         return Response(
                 resultCode = "0000",
                 resultMessage = "저장완료",
                 accessToken = "",
                 expireDate = null,
-                data = null
+                data = listOf(mapOf("board_id" to boardId))
         )
     }
 
