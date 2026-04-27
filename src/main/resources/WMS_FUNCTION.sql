@@ -50,7 +50,7 @@ BEGIN
 	-- 고객사 센터명 조회
 	SELECT WH_NM
 	  INTO v_wh_nm
-	  FROM WMS.TB_WH
+	  FROM TB_WH
 	 WHERE 1 = 1
 	   AND SRVC_CD = p_srvc_cd
 	   AND WH_CD = p_wh_cd;
@@ -65,3 +65,37 @@ EXCEPTION
 		RETURN NULL;
 END;
 $$;
+
+-- =============================================
+-- Function Name : fn_get_user_nm
+-- Description   : 사용자 이름 조회
+-- Parameter     : p_user_id - 사용자 ID
+-- Return        : 사용자명 (VARCHAR)
+-- Create Date   : 2026-04-27
+-- auther		 : 허민
+-- =============================================
+CREATE OR REPLACE FUNCTION WMS.FN_GET_USER_NM(P_USER_ID VARCHAR)
+RETURNS VARCHAR
+LANGUAGE PLPGSQL
+AS $$
+DECLARE
+	V_USER_NM VARCHAR;
+BEGIN
+	-- 사용자 이름 조회
+	SELECT USER_NM
+	  INTO V_USER_NM
+	  FROM TB_USER
+	 WHERE 1 = 1
+	   AND USER_ID = P_USER_ID;
+	RETURN V_USER_NM;
+
+EXCEPTION
+	-- 데이터가 없는 경우, NULL 반환
+	WHEN NO_DATA_FOUND THEN
+		RETURN NULL;
+	-- 기타 예외 발생시, NULL 반환
+	WHEN OTHERS THEN
+		RETURN NULL;
+END
+$$
+;
