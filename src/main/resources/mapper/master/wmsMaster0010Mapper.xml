@@ -6,19 +6,19 @@
     <!-- 차량관리 목록조회 -->
     <select id="selectVehicleList" parameterType="map" resultType="map">
         SELECT SRVC_CD
-             , COALESCE(NULLIF(FN_GET_SRVC_NM(SRVC_CD), ''), '') AS SRVC_NM
+             , COALESCE(NULLIF(WMS.FN_GET_SRVC_NM(SRVC_CD), ''), '') AS SRVC_NM
              , WH_CD
-             , COALESCE(NULLIF(FN_GET_WH_NM(SRVC_CD, WH_CD), ''), '') AS WH_NM
+             , COALESCE(NULLIF(WMS.FN_GET_WH_NM(SRVC_CD, WH_CD), ''), '') AS WH_NM
              , VEHICLE_NO
              , DRV_NM
              , HP_NO
              , TON_CLS_CD
              , USE_YN
-             , REG_ID
-             , TO_CHAR(REG_DATE, 'YYYY-MM-DD') AS REG_DATE			
-             , UPD_ID			
+             , COALESCE(NULLIF(WMS.FN_GET_USER_NM(REG_ID), ''), '') AS REG_ID
+             , TO_CHAR(REG_DATE, 'YYYY-MM-DD') AS REG_DATE
+             , COALESCE(NULLIF(WMS.FN_GET_USER_NM(UPD_ID), ''), '') AS UPD_ID
              , TO_CHAR(UPD_DATE, 'YYYY-MM-DD') AS UPD_DATE
-          FROM TB_VEHICLE 
+          FROM WMS.TB_VEHICLE 
          WHERE 1 = 1
            AND SRVC_CD = #{srvcCd}
            AND WH_CD = #{whCd}
@@ -33,7 +33,7 @@
 
     <!-- 차량관리 정보 저장-->
     <insert id="mergeVehicleInfo" parameterType="map">
-        MERGE INTO TB_VEHICLE T
+        MERGE INTO WMS.TB_VEHICLE T
         USING (
             SELECT #{srvcCd} AS SRVC_CD
                  , #{whCd} AS WH_CD
@@ -81,7 +81,7 @@
     <!-- 차량관리 정보 삭제-->
     <delete id="deleteVehicleInfo" parameterType="map">
         DELETE 
-          FROM TB_VEHICLE
+          FROM WMS.TB_VEHICLE
          WHERE 1 = 1
            AND SRVC_CD = #{srvcCd}
            AND WH_CD = #{whCd}
