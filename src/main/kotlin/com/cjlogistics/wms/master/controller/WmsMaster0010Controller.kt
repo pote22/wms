@@ -19,91 +19,112 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/master/vehicle")
 class WmsMaster0010Controller(private val wmsMaster0010Service: WmsMaster0010Service) {
 
-    private val LOG = LoggerFactory.getLogger(WmsMaster0010Controller::class.java)
+        private val LOG = LoggerFactory.getLogger(WmsMaster0010Controller::class.java)
 
-    /** 차량관리 목록 조회 */
-    @PostMapping("/getList")
-    fun getList(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
-        LOG.info("---> selectVehicle : " + paramMap)
-        return try {
-            var response = wmsMaster0010Service.getList(paramMap)
-            ResponseEntity.ok(response)
-        } catch (e: Exception) {
-            LOG.error("getList error : ${e.message}", e)
-            ResponseEntity.status(500)
-                    .body(
-                            Response(
-                                    resultCode = "9999",
-                                    resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
-                                    accessToken = "",
-                                    expireDate = null,
-                                    data = null
-                            )
-                    )
+        /** 차량관리 목록 조회 */
+        @PostMapping("/getList")
+        fun getList(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
+                LOG.info("---> selectVehicle : " + paramMap)
+                return try {
+                        var response = wmsMaster0010Service.getList(paramMap)
+                        ResponseEntity.ok(response)
+                } catch (e: Exception) {
+                        LOG.error("getList error : ${e.message}", e)
+                        ResponseEntity.status(500)
+                                .body(
+                                        Response(
+                                                resultCode = "9999",
+                                                resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                                                accessToken = "",
+                                                expireDate = null,
+                                                data = null
+                                        )
+                                )
+                }
         }
-    }
 
-    /** 차량관리 저장 */
-    @PostMapping("/saveVehicle")
-    fun saveVehicle(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
-        LOG.info("---> saveVehicle : " + paramMap)
-        return try {
-            ResponseEntity.ok(wmsMaster0010Service.saveVehicle(paramMap))
-        } catch (ie: IllegalArgumentException) {
-            ResponseEntity.status(400)
-                    .body(
-                            Response(
-                                    resultCode = "0001",
-                                    resultMessage = ie.message,
-                                    accessToken = "",
-                                    expireDate = null,
-                                    data = null
-                            )
-                    )
-        } catch (e: Exception) {
-            LOG.error("saveList error : ${e.message}", e)
-            ResponseEntity.status(500)
-                    .body(
-                            Response(
-                                    resultCode = "9999",
-                                    resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
-                                    accessToken = "",
-                                    expireDate = null,
-                                    data = null
-                            )
-                    )
+        /** 차량관리 저장 */
+        @PostMapping("/saveVehicle")
+        fun saveVehicle(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
+                LOG.info("---> saveVehicle : " + paramMap)
+                return try {
+                        ResponseEntity.ok(wmsMaster0010Service.saveVehicle(paramMap))
+                } catch (ie: IllegalArgumentException) {
+                        ResponseEntity.status(400)
+                                .body(
+                                        Response(
+                                                resultCode = "0001",
+                                                resultMessage = ie.message,
+                                                accessToken = "",
+                                                expireDate = null,
+                                                data = null
+                                        )
+                                )
+                } catch (e: Exception) {
+                        LOG.error("saveList error : ${e.message}", e)
+                        ResponseEntity.status(500)
+                                .body(
+                                        Response(
+                                                resultCode = "9999",
+                                                resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                                                accessToken = "",
+                                                expireDate = null,
+                                                data = null
+                                        )
+                                )
+                }
         }
-    }
 
-    /** 차량관리 삭제 */
-    @PostMapping("/removeVehicle")
-    fun removeVehicle(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
-        LOG.info("---> removeVehicle : " + paramMap)
-        return try {
-            ResponseEntity.ok(wmsMaster0010Service.removeVehicle(paramMap))
-        } catch (ie: IllegalArgumentException) {
-            ResponseEntity.status(400)
-                    .body(
-                            Response(
-                                    resultCode = "0001",
-                                    resultMessage = ie.message,
-                                    accessToken = "",
-                                    expireDate = null,
-                                    data = null
-                            )
-                    )
-        } catch (e: Exception) {
-            LOG.error("removeVehicle error : ${e.message}", e)
-            ResponseEntity.status(500)
-                    .body(
-                            Response(
-                                    resultCode = "9999",
-                                    resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
-                                    accessToken = "",
-                                    expireDate = null,
-                                    data = null
-                            )
-                    )
+        /** 차량관리 삭제 */
+        @PostMapping("/removeVehicle")
+        fun removeVehicle(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
+                LOG.info("---> removeVehicle : " + paramMap)
+                return try {
+                        ResponseEntity.ok(wmsMaster0010Service.removeVehicle(paramMap))
+                } catch (ie: IllegalArgumentException) {
+                        ResponseEntity.status(400)
+                                .body(
+                                        Response(
+                                                resultCode = "0001",
+                                                resultMessage = ie.message,
+                                                accessToken = "",
+                                                expireDate = null,
+                                                data = null
+                                        )
+                                )
+                } catch (e: Exception) {
+                        LOG.error("removeVehicle error : ${e.message}", e)
+                        ResponseEntity.status(500)
+                                .body(
+                                        Response(
+                                                resultCode = "9999",
+                                                resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                                                accessToken = "",
+                                                expireDate = null,
+                                                data = null
+                                        )
+                                )
+                }
         }
-    }
+
+        /** 엑셀업로드 : 유효성 체크 */
+        @PostMapping("/getCheckList")
+        fun getCheckList(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
+                LOG.info("---> getCheckList : " + paramMap)
+                return try {
+                        ResponseEntity.ok(wmsMaster0010Service.getCheckList(paramMap))
+                } catch (e: Exception) {
+                        LOG.error("getCheckList error : ${e.message}", e)
+                        ResponseEntity.status(500)
+                                .body(
+                                        Response(
+                                                resultCode = "9999",
+                                                resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                                                accessToken = "",
+                                                expireDate = null,
+                                                data = null
+                                        )
+                                )
+                }
+        }
 }

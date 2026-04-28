@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+          "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cjlogistics.wms.common.mapper.CommonCodeMapper">
+    <!-- 공통코드 : 차량 톤수 정합성 체크 -->
+    <select id="getTonClsCdCheck" resultType="String">
+        SELECT SYS_CD
+          FROM WMS.TB_COMM_CODE
+         WHERE 1 = 1
+           AND SYS_MD_CD = 'WM'
+           AND SYS_MC_CD = 'WM1001'
+           AND SYS_CD = #{tonClsCd}
+           AND USE_YN = 'Y'
+    </select>
+</mapper>
