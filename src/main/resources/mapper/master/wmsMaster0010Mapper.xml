@@ -5,7 +5,8 @@
   <mapper namespace="com.cjlogistics.wms.master.mapper.WmsMaster0010Mapper">
     <!-- 차량관리 목록조회 -->
     <select id="selectVehicleList" parameterType="map" resultType="map">
-        SELECT SRVC_CD
+        SELECT '0' AS CHK
+             , SRVC_CD
              , COALESCE(NULLIF(WMS.FN_GET_SRVC_NM(SRVC_CD), ''), '') AS SRVC_NM
              , WH_CD
              , COALESCE(NULLIF(WMS.FN_GET_WH_NM(SRVC_CD, WH_CD), ''), '') AS WH_NM

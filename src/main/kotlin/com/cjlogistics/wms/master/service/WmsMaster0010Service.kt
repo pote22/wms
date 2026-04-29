@@ -18,12 +18,12 @@ class WmsMaster0010Service(
     fun getList(paramMap: Map<String, Any>): Response {
         var list = wmsMaster0010Mapper.selectVehicleList(paramMap)
 
-        return Response(
-                resultCode = "0000",
-                resultMessage = "정상적으로 처리되었습니다.",
-                accessToken = "",
-                expireDate = null,
-                data = list
+        return Response (
+            resultCode = "0000",
+            resultMessage = "정상적으로 처리되었습니다.",
+            accessToken = "",
+            expireDate = null,
+            data = list
         )
     }
 
@@ -36,12 +36,12 @@ class WmsMaster0010Service(
 
         vehicles.forEach { vehicle -> wmsMaster0010Mapper.mergeVehicleInfo(vehicle) }
 
-        return Response(
-                resultCode = "0000",
-                resultMessage = "저장되었습니다.",
-                accessToken = "",
-                expireDate = null,
-                data = null
+        return Response (
+            resultCode = "0000",
+            resultMessage = "저장되었습니다.",
+            accessToken = "",
+            expireDate = null,
+            data = null
         )
     }
 
@@ -58,11 +58,11 @@ class WmsMaster0010Service(
         wmsMaster0010Mapper.deleteVehicleInfo(paramMap)
 
         return Response(
-                resultCode = "0000",
-                resultMessage = "삭제되었습니다.",
-                accessToken = "",
-                expireDate = null,
-                data = null
+            resultCode = "0000",
+            resultMessage = "삭제되었습니다.",
+            accessToken = "",
+            expireDate = null,
+            data = null
         )
     }
 
@@ -71,38 +71,38 @@ class WmsMaster0010Service(
         val list = paramMap["vehicles"] as? List<Map<String, Any>> ?: emptyList()
 
         return Response(
-                resultCode = "0000",
-                resultMessage = "검증완료",
-                accessToken = "",
-                expireDate = null,
-                data = setCheckRows(list)
+            resultCode = "0000",
+            resultMessage = "검증완료",
+            accessToken = "",
+            expireDate = null,
+            data = setCheckRows(list)
         )
     }
 
     /** 엑셀업로드 : 유효성 검증 */
     private fun setCheckRows(list: List<Map<String, Any>>): List<Map<String, Any>> {
-        val hpNoRegx = Regex("^0\\d{1,2}-\\d{3,4}-\\d{4}$")
+        val hpNoRegx  = Regex("^0\\d{1,2}-\\d{3,4}-\\d{4}$")
+        val nullRegx  = Regex("\\u0000")
 
         return list.mapIndexed { idx, vehicle ->
-            val errors = mutableListOf<String>()
-            val vehicleNo = vehicle["vehicleNo"]?.toString()?.trim() ?: ""
-            val drvNm    = vehicle["drvNm"]?.toString()?.trim() ?: ""
-            val tonClsCd = vehicle["tonClsCd"]?.toString()?.trim() ?: ""
-            val hpNo     = vehicle["hpNo"]?.toString()?.trim() ?: ""
+            val errors      = mutableListOf<String>()
+            val vehicleNo   = vehicle["vehicleNo"]?.toString()?.replace(nullRegx, "")?.trim() ?: ""
+            val tonClsCd    = vehicle["tonClsCd"]?.toString()?.replace(nullRegx, "")?.trim() ?: ""
+            val hpNo        = vehicle["hpNo"]?.toString()?.replace(nullRegx, "")?.trim() ?: ""
 
-            if (vehicleNo.isEmpty()) errors.add("차량번호: 필수값 누락")
-            if (drvNm.isEmpty())     errors.add("기사명: 필수값 누락")
-
-            if (tonClsCd.isEmpty()) {
-                errors.add("톤급: 필수값 누락")
-            } else {
-                val tonCdCheck = commonCodeMapper.getTonClsCdCheck(tonClsCd)
-                if (tonCdCheck.isNullOrEmpty()) errors.add("톤급: 허용값 아님")
+            if (vehicleNo.isEmpty()) {
+                errors.add("차량번호 필수값 누락")
             }
 
-            if (hpNo.isEmpty()) {
-                errors.add("HP번호: 필수값 누락")
-            } else if (!hpNo.matches(hpNoRegx)) {
+            if (tonClsCd.isNotEmpty()) {
+                val tonCdCheck = commonCodeMapper.selectTonClsCdCheck(tonClsCd)
+
+                if (tonCdCheck.isNullOrEmpty()) {
+                    errors.add("톤급: 허용값 아님")
+                }
+            }
+
+            if (hpNo.isNotEmpty() && !hpNo.matches(hpNoRegx)) {
                 errors.add("HP번호: 형식 오류 (예: 010-1234-5678)")
             }
 
