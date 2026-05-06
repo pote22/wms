@@ -3,4 +3,142 @@
           "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
   <mapper namespace="com.cjlogistics.wms.master.mapper.WmsMaster0030Mapper">
+        <!-- 품목 리스트 조회 -->
+        <select id="selectProdList" parameterType="map" resultType="map">
+                SELECT '0' AS CHK
+                     , SRVC_CD                                                          -- 고객사
+                     , WH_CD                                                            -- 센터
+                     , PROD_CD                                                          -- 폼목코드
+                     , PROD_NM                                                          -- 품명
+                     , STEITEM_NO                                                       -- 설계품목코드(고객사품목코드)
+                     , PROD_CATEGORY                                                    -- 품목구분
+                     , PROD_SHAPE                                                       -- 품목형태
+                     , PROD_TYPE                                                        -- 품목타입
+                     , TO_CHAR(CREATE_TIME, 'YYYYMMDD') AS CREATE_TIME                  -- 생성일자
+                     , USE_YN                                                           -- 사용여부
+                     , FIFO_YN                                                          -- 선입선출여부
+                     , PRICE                                                            -- 가격 
+                     , INNERPACK                                                        -- 용기별 적입수량
+                     , PROD_UNIT                                                        -- 품목단위
+                     , WEIGHT                                                           -- 중량
+                     , REAL_WEIGHT                                                      -- 실중량
+                     , WEIGHT_UNIT                                                      -- 중량단위
+                     , COALESCE(NULLIF(WMS.FN_GET_USER_NM(REG_ID), ''), '') AS REG_ID   -- 등록자
+                     , TO_CHAR(REG_DATE, 'YYYY-MM-DD') AS REG_DATE                      -- 등록일자
+                     , COALESCE(NULLIF(WMS.FN_GET_USER_NM(UPD_ID), ''), '') AS UPD_ID   -- 수정자
+                     , TO_CHAR(UPD_DATE, 'YYYY-MM-DD') AS UPD_DATE                      -- 수정일자
+                  FROM WMS.TB_ITEM
+                 WHERE 1 = 1
+                   AND SRVC_CD  = #{srvcCd}
+                   AND WH_CD    = #{whCd}
+                   <if test="prodCd != null and prodCd != ''">
+                   AND PROD_CD  = #{prodCd}
+                   </if>
+                   <if test="prodCategory != null and prodCategory != ''">
+                   AND PROD_CATEGORY LIKE '%' || #{prodCategory} || '%'
+                   </if>
+                   <if test="useYn != null and useYn != ''">
+                   AND USE_YN   = #{useYn}
+                   </if>
+                   <if test="steItemNo != null and steItemNo != ''">
+                   AND STEITEM_NO LIKE '%' || #{steItemNo} || '%'
+                   </if>
+        </select>
+
+        <!-- 품목정보 생성&저장 -->
+        <insert id="mergeProdInfo" parameterType="map">
+                MERGE INTO WMS.TB_ITEM T
+                USING (
+                   SELECT #{srvcCd}          AS SRVC_CD
+                        , #{whCd}            AS WH_CD
+                        , #{prodCd}          AS PROD_CD
+                        , #{prodNm}          AS PROD_NM
+                        , #{steItemNo}       AS STEITEM_NO
+                        , #{prodCategory}    AS PROD_CATEGORY
+                        , #{prodShape}       AS PROD_SHAPE
+                        , #{prodType}        AS PROD_TYPE
+                        , #{useYn}           AS USE_YN
+                        , #{fifoYn}          AS FIFO_YN
+                        , #{price}           AS PRICE
+                        , #{innerpack}       AS INNERPACK
+                        , #{prodUnit}        AS PROD_UNIT
+                        , #{weight}          AS WEIGHT
+                        , #{realWeight}      AS REAL_WEIGHT
+                        , #{weightUnit}      AS WEIGHT_UNIT
+                        , #{userId}          AS USER_ID
+                ) AS S ON (T.SRVC_CD = S.SRVC_CD 
+                       AND T.WH_CD   = S.WH_CD
+                       AND T.PROD_CD = S.PROD_CD)
+                WHEN MATCHED THEN
+                        UPDATE
+                           SET STEITEM_NO    = #{steItemNo}
+                             , PROD_CATEGORY = #{prodCategory}
+                             , PROD_SHAPE    = #{prodShape}
+                             , PROD_TYPE     = #{prodType}
+                             , USE_YN        = #{useYn}
+                             , FIFO_YN       = #{fifoYn}
+                             , PRICE         = #{price}
+                             , INNERPACK     = #{innerpack}
+                             , PROD_UNIT     = #{prodUnit}
+                             , WEIGHT        = #{weight}
+                             , REAL_WEIGHT   = #{realWeight}
+                             , WEIGHT_UNIT   = #{weightUnit}
+                             , UPD_ID        = #{userId}
+                             , UPD_DATE      = NOW()
+                WHEN NOT MATCHED THEN
+                        INSERT (
+                          SRVC_CD
+                        , WH_CD
+                        , PROD_CD
+                        , PROD_NM
+                        , STEITEM_NO
+                        , PROD_CATEGORY
+                        , PROD_SHAPE
+                        , PROD_TYPE
+                        , CREATE_TIME
+                        , USE_YN
+                        , FIFO_YN
+                        , PRICE
+                        , INNERPACK
+                        , PROD_UNIT
+                        , WEIGHT
+                        , REAL_WEIGHT
+                        , WEIGHT_UNIT
+                        , REG_ID
+                        , REG_DATE
+                      ) VALUES (
+                          #{srvcCd}
+                        , #{whCd}
+                        , #{prodCd}
+                        , #{prodNm}
+                        , #{steItemNo}
+                        , #{prodCategory}
+                        , #{prodShape}
+                        , #{prodType}
+                        , NOW()
+                        , #{useYn} 
+                        , #{fifoYn}
+                        , #{price}
+                        , #{innerpack}
+                        , #{prodUnit}
+                        , #{weight}
+                        , #{realWeight}
+                        , #{weightUnit}
+                        , #{userId}
+                        , NOW()
+                      )        
+        </insert>
+
+        <!-- 품목정보 삭제 -->
+        <delete id="deleteProdInfo" parameterType="map">
+                DELETE
+                  FROM WMS.TB_ITEM
+                 WHERE 1 = 1
+                   AND SRVC_CD  = #{srvcCd}
+                   AND WH_CD    = #{whCd}
+                   AND PROD_CD IN 
+                   <foreach item="partInfo" collection="partList" open="(" separator="," close=")">
+                      #{ partInfo.prodCd }
+                   </foreach>
+        </delete>
   </mapper>

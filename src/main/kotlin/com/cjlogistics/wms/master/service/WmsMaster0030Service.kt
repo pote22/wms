@@ -1,0 +1,66 @@
+package com.cjlogistics.wms.master.service
+
+import com.cjlogistics.wms.dto.Response
+import com.cjlogistics.wms.master.mapper.WmsMaster0030Mapper
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
+
+@Service
+class WmsMaster0030Service (private val wmsMaster0030Mapper : WmsMaster0030Mapper) {
+
+    private val LOG = LoggerFactory.getLogger(WmsMaster0030Service::class.java)
+
+    /** 품목목록 조회 */
+    fun getList(paramMap : Map<String, Any>) : Response {
+        val list = wmsMaster0030Mapper.selectProdList(paramMap)
+        return Response (
+            resultCode      = "0000",
+            resultMessage   = "정상적으로 처리되었습니다.",
+            accessToken     = "",
+            expireDate      = null,
+            data            = list
+        )
+    }
+
+    /** 품목정보 저장 */
+    fun saveProdInfo(paramMap : Map<String, Any>) : Response {
+        val prodList = paramMap["prodList"] as? List<Map<String, Any>> ?: throw IllegalArgumentException("저장할 데이터가 없습니다.")
+
+        if (prodList.isEmpty()) {
+            throw IllegalArgumentException("저장할 데이터가 없습니다.")
+        }
+
+        // 저장수행
+        prodList.forEach {
+            prodInfo -> wmsMaster0030Mapper.mergeProdInfo(prodInfo)
+        }
+
+        return Response (
+            resultCode      = "0000",
+            resultMessage   = "저장되었습니다.",
+            accessToken     = "",
+            expireDate      = null,
+            data            = null
+        )
+    }
+
+    /** 품목삭제 */
+    fun removeProdInfo(paramMap : Map<String, Any>) : Response {
+        var prodList = paramMap["prodList"] as? List<Map<String, Any>> ?: throw IllegalArgumentException("삭제할 항목을 선택해주세요")
+
+        if (prodList.isEmpty()) {
+            throw IllegalArgumentException("삭제할 항목을 선택해주세요")
+        }
+
+        // 삭제
+        wmsMaster0030Mapper.deleteProdInfo(paramMap)
+
+        return Response (
+            resultCode      = "0000",
+            resultMessage   = "삭제되었습니다.",
+            accessToken     = "",
+            expireDate      = null,
+            data            = null
+        )
+    }
+}
