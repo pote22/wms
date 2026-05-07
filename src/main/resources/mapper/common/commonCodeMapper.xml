@@ -19,9 +19,24 @@
         SELECT SYS_CD
           FROM WMS.TB_COMM_CODE
          WHERE 1 = 1
-           AND SYS_MD_CD = 'WM'         -- WM 
+           AND SYS_MD_CD = 'WM'         -- WM
            AND SYS_MC_CD = 'WM10001'    -- 차량별 톤급 리스트
            AND SYS_CD    = #{tonClsCd}
            AND USE_YN    = 'Y'
+    </select>
+
+    <!-- 공통 : 품목 검색 팝업 조회 -->
+    <select id="selectProdSearchList" parameterType="map" resultType="map">
+        SELECT PROD_CD
+             , PROD_NM
+          FROM WMS.TB_ITEM
+         WHERE 1 = 1
+           AND SRVC_CD = #{srvcCd}
+           AND WH_CD   = #{whCd}
+           <if test="prodCd != null and prodCd != ''">
+           AND PROD_CD LIKE '%' || #{prodCd} || '%'
+           </if>
+           AND USE_YN  = 'Y'
+         ORDER BY PROD_CD
     </select>
 </mapper>

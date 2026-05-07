@@ -17,4 +17,16 @@ class CommonCodeService(private val commonCodeMapper: CommonCodeMapper) {
             data            = list
         )
     }
+
+    fun getProdSearchList(paramMap: Map<String, Any>): Response {
+        val list = commonCodeMapper.selectProdSearchList(paramMap)
+
+        return Response(
+            resultCode      = "0000",
+            resultMessage   = "정상적으로 처리되었습니다.",
+            accessToken     = "",
+            expireDate      = null,
+            data            = list
+        )
+    }
 }

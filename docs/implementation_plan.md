@@ -15,6 +15,7 @@
 | Phase 9 | 공지사항 첨부파일 백엔드 구현 | ✅ 완료 |
 | Phase 10 | 공지사항 첨부파일 프론트엔드 연동 | ✅ 완료 |
 | Phase 11 | 차량관리 백엔드 구현 (WMS_MASTER_0010) | ✅ 완료 |
+| Phase 12 | 품목관리 백엔드 구현 (WMS_MASTER_0030) | ✅ 완료 |
 
 > 완료된 Phase 상세 → [`docs/history/backend_phases.md`](history/backend_phases.md)
 
@@ -38,6 +39,25 @@
 ### 참고
 - 현재 `WebConfig.kt`에 CORS 설정이 있으므로 Security 필터와 중복 설정 주의
 - 필터 순서: `JwtAuthenticationFilter` → `UsernamePasswordAuthenticationFilter` 앞에 위치
+
+---
+
+## Phase 12 — 품목관리 백엔드 구현 (WMS_MASTER_0030) ✅
+
+### 구현 내용
+- `WmsMaster0030Controller.kt` — `@RequestMapping("/api/master/part")`, POST `/getList` · `/savePart` · `/removePart` · `/getCheckList`
+- `WmsMaster0030Service.kt` — getList / saveProdInfo / deleteProdInfo / getCheckList(엑셀 업로드 유효성 검증)
+- `WmsMaster0030Mapper.kt` — selectPartList / mergePartInfo / deletePartInfo
+- `wmsMaster0030Mapper.xml` — selectPartList(동적 조건) / mergePartInfo(UPSERT) / deletePartInfo(다건 IN)
+- `CommonCodeController.kt` — POST `/api/common/getProdSearchList` 추가
+- `CommonCodeService.kt` — getProdSearchList 추가
+- `CommonCodeMapper.kt` — selectProdSearchList 추가
+- `commonCodeMapper.xml` — selectProdSearchList(LIKE 검색) 추가
+
+### 엑셀 업로드 유효성 검증 규칙 (getCheckList)
+- 품목번호 필수
+- 단가 · 용기수량: `^[0-9]+$` (정수)
+- 중량 · 실중량: `^[0-9]*\.?[0-9]*$` (실수)
 
 ---
 

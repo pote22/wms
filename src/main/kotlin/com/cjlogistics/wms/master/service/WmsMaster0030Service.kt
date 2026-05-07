@@ -63,4 +63,54 @@ class WmsMaster0030Service (private val wmsMaster0030Mapper : WmsMaster0030Mappe
             data            = null
         )
     }
+
+    /** 엑셀업로드 : 유효성 체크 */
+    fun getCheckList(paramMap : Map<String, Any>) : Response {
+        val list = paramMap["prodList"] as? List<Map<String, Any>> ?: emptyList()
+        return Response(
+            resultCode      = "0000",
+            resultMessage   = "검증완료",
+            accessToken     = "",
+            expireDate      = null,
+            data            = setCheckRows(list)
+        )
+    }
+
+    /** 엑셀업로드 : 유효성 검증 */
+    private fun setCheckRows(list : List<Map<String, Any>>) : List<Map<String, Any>> {
+        val intRegx   = Regex("^[0-9]+$")               // 0 ~ 9 정수체크 (음수체크)
+        val floatRegx = Regex("^[0-9]*\\.?[0-9]*$")     // 0 ~ 9 실수체크 (음수체크)
+        val nullRegx  = Regex("\\u0000")                // 널값체크
+
+        return list.mapIndexed { idx, prod ->
+            val errors     = mutableListOf<String>()
+            val prodCd     = prod["prodCd"]?.toString()?.replace(nullRegx, "")?.trim()      ?: ""
+            val price      = prod["price"]?.toString()?.replace(nullRegx, "")?.trim()       ?: ""
+            val innerpack  = prod["innerpack"]?.toString()?.replace(nullRegx, "")?.trim()   ?: ""
+            val weight     = prod["weight"]?.toString()?.replace(nullRegx, "")?.trim()      ?: ""
+            val realWeight = prod["realWeight"]?.toString()?.replace(nullRegx, "")?.trim()  ?: ""
+
+            if (prodCd.isEmpty()) {
+                errors.add("품목번호 ")
+            }
+                
+            if (price.isNotEmpty() && !price.matches(intRegx)) {
+                errors.add("단가 ")
+            }
+
+            if (innerpack.isNotEmpty() && !innerpack.matches(intRegx)) {
+                errors.add("용기:수량 ")
+            }
+            
+            if (weight.isNotEmpty() && !weight.matches(floatRegx)) {
+                errors.add("중량 ")
+            }     
+
+            if (realWeight.isNotEmpty() && !realWeight.matches(floatRegx)) {
+                errors.add("실중량 ")
+            }
+
+            mapOf("rowIndex" to idx, "isValid" to errors.isEmpty(), "errors" to errors)
+        }
+    }
 }

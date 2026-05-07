@@ -6,4 +6,5 @@ import org.apache.ibatis.annotations.Mapper
 interface CommonCodeMapper {
     fun selectVehicleTonList(): List<Map<String, Any>>
     fun selectTonClsCdCheck(tonClsCd: String): String?
+    fun selectProdSearchList(map: Map<String, Any>): List<Map<String, Any>>
 }

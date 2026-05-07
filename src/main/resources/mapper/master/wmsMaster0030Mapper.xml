@@ -43,6 +43,7 @@
                    <if test="steItemNo != null and steItemNo != ''">
                    AND STEITEM_NO LIKE '%' || #{steItemNo} || '%'
                    </if>
+                 ORDER BY SRVC_CD, WH_CD, PROD_CD, CREATE_TIME 
         </select>
 
         <!-- 품목정보 생성&저장 -->
@@ -53,7 +54,7 @@
                         , #{whCd}            AS WH_CD
                         , #{prodCd}          AS PROD_CD
                         , #{prodNm}          AS PROD_NM
-                        , #{steItemNo}       AS STEITEM_NO
+                        , #{steitemNo}       AS STEITEM_NO
                         , #{prodCategory}    AS PROD_CATEGORY
                         , #{prodShape}       AS PROD_SHAPE
                         , #{prodType}        AS PROD_TYPE
@@ -71,7 +72,7 @@
                        AND T.PROD_CD = S.PROD_CD)
                 WHEN MATCHED THEN
                         UPDATE
-                           SET STEITEM_NO    = #{steItemNo}
+                           SET STEITEM_NO    = #{steitemNo}
                              , PROD_CATEGORY = #{prodCategory}
                              , PROD_SHAPE    = #{prodShape}
                              , PROD_TYPE     = #{prodType}
@@ -111,7 +112,7 @@
                         , #{whCd}
                         , #{prodCd}
                         , #{prodNm}
-                        , #{steItemNo}
+                        , #{steitemNo}
                         , #{prodCategory}
                         , #{prodShape}
                         , #{prodType}
@@ -137,8 +138,8 @@
                    AND SRVC_CD  = #{srvcCd}
                    AND WH_CD    = #{whCd}
                    AND PROD_CD IN 
-                   <foreach item="partInfo" collection="partList" open="(" separator="," close=")">
-                      #{ partInfo.prodCd }
+                   <foreach item="prodInfo" collection="prodList" open="(" separator="," close=")">
+                      #{ prodInfo.prodCd }
                    </foreach>
         </delete>
   </mapper>
