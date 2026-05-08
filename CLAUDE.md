@@ -141,29 +141,40 @@ where token-optimizer-mcp
 
 ---
 
-## 작업 위임 판단 기준
+## 작업 위임 규칙 (MANDATORY — 반드시 준수)
 
-### Gemini에게 위임할 때 (`gemini-research` MCP 사용)
-- "~이 뭐야?", "~를 설명해줘", "~를 조사해줘" 같은 리서치 요청
+> ⚠️ 아래 규칙은 선택 사항이 아닙니다. 해당 작업 유형이 감지되면 Claude Code는 반드시 지정된 MCP 도구를 먼저 호출한 후 결과를 바탕으로 응답해야 합니다. 직접 답변 금지.
+
+### 리서치 작업 → 반드시 Gemini 먼저 호출 (`gemini-research` MCP)
+
+다음 유형의 요청이 오면 **반드시 `gemini_research` 또는 `gemini_analyze` 도구를 먼저 호출**하고 그 결과를 바탕으로 답변할 것:
+- "~이 뭐야?", "~를 설명해줘", "~를 조사해줘", "~를 알아봐줘"
 - 라이브러리/프레임워크 비교 분석
-- 아키텍처 설계 방향 조사
+- 아키텍처·설계 방향 조사
 - 보안 취약점 리서치
 - 기술 트렌드 파악
+- 외부 기술 정보가 필요한 모든 질문
 
-### OpenAI/Codex에게 위임할 때 (`openai-coding` / `codex` MCP 사용)
+**호출 순서**: `gemini_research` (또는 `gemini_analyze`, `gemini_compare`) → 결과 확인 → 사용자에게 전달
+
+### 코딩 작업 → 반드시 Codex 먼저 호출 (`openai-coding` / `codex` MCP)
+
+다음 유형의 요청이 오면 **반드시 `codex_generate`, `codex_refactor`, `codex_fix_bug`, `codex_write_tests` 중 적절한 도구를 먼저 호출**하고 그 결과를 파일에 반영할 것:
 - 새 기능 코드 생성 요청
 - 기존 코드 리팩토링
 - 버그 원인 파악 및 수정 코드 제안
 - 테스트 코드 작성
 - 복잡한 알고리즘 구현
-- 코드 리뷰 (`/codex:review`)
+- 코드 리뷰 (`codex` MCP의 `review` 도구 사용)
 
-### Claude Code가 직접 처리할 때
-- 파일 읽기/쓰기/수정
+**호출 순서**: `codex_generate` 등 → 결과 확인 → Claude Code가 파일에 적용
+
+### Claude Code가 직접 처리하는 것 (MCP 호출 불필요)
+- 파일 읽기/쓰기/수정 (Codex 결과 적용 포함)
 - git 작업 (commit, branch 등)
 - 프로젝트 빌드 및 실행
-- 최종 코드 파일 적용 (Codex가 생성한 코드를 파일에 반영)
-- 간단한 수정 (1~5줄 변경)
+- 1~5줄 이하의 단순 수정
+- 사용자 승인 확인, 계획 보고 등 메타 작업
 
 ---
 
