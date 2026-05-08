@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+                        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cjlogistics.wms.master.mapper.WmsMaster0040Mapper">
+
+    <!-- 센터별 존 리스트 조회 -->
+    <select id="selectZoneList" parameterType="map" resultType="map">
+        SELECT SRVC_CD                                                          -- 고객사
+             , WH_CD                                                            -- 센터
+             , ZONE_CD                                                          -- 존코드
+             , ZONE_NM                                                          -- 존명
+             , USE_YN                                                           -- 사용여부
+             , COALESCE(NULLIF(WMS.FN_GET_USER_NM(REG_ID),''),'') AS REG_ID     -- 등록자
+             , TO_CHAR(REG_DATE,'YYYY-MM-DD') AS REG_DATE                       -- 등록일자
+             , COALESCE(NULLIF(WMS.FN_GET_USER_NM(UPD_ID),''),'') AS UPD_ID     -- 수정자
+             , TO_CHAR(UPD_DATE,'YYYY-MM-DD') AS UPD_DATE                       -- 수정일자
+          FROM WMS.TB_ZONE
+         WHERE 1 = 1
+           AND SRVC_CD 	= #{ srvcCd }
+           AND WH_CD 	= #{ whCd }
+           <if test="zoneCd != null and zoneCd != ''">
+           AND ZONE_CD  = #{ zoneCd }
+           </if>
+           <if test="useYn != null and useYn != ''">
+           AND USE_YN   = #{ useYn }
+           </if>
+         ORDER BY SRVC_CD, WH_CD, ZONE_CD
+    </select>
+
+    <!-- 센터별 존 별 로케이션 리스트 조회 -->
+    <select id="selectLocList" parameterType="map" resultType="map">
+        SELECT SRVC_CD
+             , WH_CD
+             , ZONE_CD
+             , LOC_CD
+             , LOC_CLS_CD
+             , USE_YN
+             , RMK
+             , COALESCE(NULLIF(WMS.FN_GET_USER_NM(REG_ID),''),'') AS REG_ID
+             , TO_CHAR(REG_DATE,'YYYY-MM-DD') AS REG_DATE
+             , COALESCE(NULLIF(WMS.FN_GET_USER_NM(UPD_ID),''),'') AS UPD_ID
+             , TO_CHAR(UPD_DATE,'YYYY-MM-DD') AS UPD_DATE  
+          FROM WMS.TB_LOC
+         WHERE 1 = 1
+           AND SRVC_CD 	= #{ srvcCd }
+           AND WH_CD 	= #{ whCd }
+           <if test="zoneCd != null and zoneCd != ''">
+           AND ZONE_CD 	= #{ zoneCd }
+           </if>
+           <if test="locCd != null and locCd != ''">
+           AND LOC_CD	= #{ locCd }
+           </if>
+         ORDER BY SRVC_CD, WH_CD, ZONE_CD, LOC_CD
+    </select>
+
+    <!-- 존(ZONE) 등록&수정 -->
+    <insert id="mergeZoneInfo" parameterType="map">
+        MERGE INTO WMS.TB_ZONE T
+        USING (
+                SELECT #{ srvcCd }  AS SRVC_CD
+                     , #{ whCd }    AS WH_CD
+                     , #{ zoneCd }  AS ZONE_CD
+                     , #{ zoneNm }  AS ZONE_NM
+                     , #{ useYn }   AS USE_YN
+                     , #{ userId }  AS USER_ID
+              ) AS S 
+           ON ( T.SRVC_CD = S.SRVC_CD AND T.WH_CD = S.WH_CD AND T.ZONE_CD = S.ZONE_CD )
+         WHEN MATCHED THEN
+            UPDATE
+               SET ZONE_NM  = #{ zoneNm }
+                 , USE_YN   = #{ useYn }
+                 , UPD_ID   = #{ userId }
+                 , UPD_DATE = NOW()
+         WHEN NOT MATCHED THEN
+            INSERT (
+                SRVC_CD
+              , WH_CD
+              , ZONE_CD
+              , ZONE_NM
+              , USE_YN
+              , REG_ID
+              , REG_DATE
+            ) VALUES (
+                #{ srvcCd }
+              , #{ whCd }
+              , #{ zoneCd }
+              , #{ zoneNm }
+              , #{ useYn }
+              , #{ userId }
+              , NOW()
+            )
+    </insert>
+
+    <!-- 로케이션(LOCATION) 등록&수정 -->
+    <insert id="mergeLocInfo" parameterType="map">
+        MERGE INTO WMS.TB_LOC T
+        USING (
+                SELECT #{ srvcCd }      AS SRVC_CD
+                     , #{ whCd }        AS WH_CD
+                     , #{ zoneCd }      AS ZONE_CD
+                     , #{ locCd }       AS LOC_CD
+                     , #{ locClsCd }    AS LOC_CLS_CD
+                     , #{ useYn }       AS USE_YN
+                     , #{ rmk }         AS RMK
+                     , #{ userId }      AS USER_ID
+              ) AS S
+           ON ( T.SRVC_CD = S.SRVC_CD AND T.WH_CD = S.WH_CD AND T.ZONE_CD = S.ZONE_CD AND T.LOC_CD = S.LOC_CD )
+         WHEN MATCHED THEN
+            UPDATE 
+               SET LOC_CLS_CD   = #{ locClsCd }
+                 , USE_YN       = #{ useYn }
+                 , RMK          = #{ rmk }
+                 , UPD_ID       = #{ userId }
+                 , UPD_DATE     = NOW()
+         WHEN NOT MATCHED THEN
+            INSERT (
+                SRVC_CD
+              , WH_CD
+              , ZONE_CD
+              , LOC_CD
+              , LOC_CLS_CD
+              , USE_YN
+              , RMK
+              , REG_ID
+              , REG_DATE
+            ) VALUES (
+                #{ srvcCd }
+              , #{ whCd }
+              , #{ zoneCd }
+              , #{ locCd }
+              , #{ locClsCd }
+              , #{ useYn }
+              , #{ rmk }
+              , #{ userId }
+              , NOW()
+            )
+    </insert>
+</mapper>
