@@ -16,7 +16,7 @@
 | Phase 10 | 공지사항 첨부파일 프론트엔드 연동 | ✅ 완료 |
 | Phase 11 | 차량관리 백엔드 구현 (WMS_MASTER_0010) | ✅ 완료 |
 | Phase 12 | 품목관리 백엔드 구현 (WMS_MASTER_0030) | ✅ 완료 |
-| Phase 13 | 존&로케이션 관리 기능 구현 (WMS_MASTER_0040) | 🔲 진행중 |
+| Phase 13 | 존&로케이션 관리 기능 구현 (WMS_MASTER_0040) | ✅ 완료 |
 
 > 완료된 Phase 상세 → [`docs/history/backend_phases.md`](history/backend_phases.md)
 
@@ -64,7 +64,7 @@
 
 ---
 
-## Phase 13 — 존&로케이션 관리 기능 구현 (WMS_MASTER_0040) 🔲
+## Phase 13 — 존&로케이션 관리 기능 구현 (WMS_MASTER_0040) ✅
 
 ### 구현 방향
 - 조회: 존 리스트 조회 → 행 선택 시 해당 존의 로케이션 목록 조회 (마스터-디테일)
@@ -139,41 +139,15 @@ SELECT '0' AS CHK, SRVC_CD, WH_CD, ZONE_CD
 
 ---
 
-### 프론트엔드 (2개 파일 수정) 🔲 미완료
+### 프론트엔드 ✅ 완료 (wms_view Phase 18 참조)
 
-#### 5. `master_0040Service.ts` (기존 스텁 → 구현) 🔲
-```typescript
-// Zone, Location, ApiResponse 인터페이스 정의
-export const getZoneList = (data, onSuccess, onError) => POST /api/master/zone/getZoneList
-export const getLocList  = (data, onSuccess, onError) => POST /api/master/zone/getLocList
-export const saveInfo    = (data, onSuccess, onError) => POST /api/master/zone/saveInfo
-```
+- `master_0040Service.ts` — getZoneList / getLocList / saveInfo / getCheckList API 구현
+- `cj_wms_master_0040.tsx` — 조회·저장·인라인 편집·엑셀다운·양식다운·엑셀업로드 전체 구현
+- `ZoneSearchPopup.tsx` + `ZoneSearchPopup.module.css` — 신규 공통 팝업 컴포넌트
 
-#### 6. `cj_wms_master_0040.tsx` (기능 구현) 🔲
-
-**체크박스 제거**
-- 삭제 기능 없음 → 체크박스 불필요
-- `ZoneRow`, `LocRow` 인터페이스에서 `chk` 필드 제거
-- `handleZoneSelectAll`, `handleZoneRowClick`, `handleLocSelectAll`, `handleLocRowClick` 핸들러 제거
-- 테이블 체크박스 컬럼(thead th + tbody td) 제거
-- 저장 시 chk 필터 없이 `isNew || isDirty` 행 전체 수집
-
-**추가 state**
-- `searchZoneCd`, `searchZoneNm`, `searchLocCd`, `searchUseYn`
-- `isSaving`, usePopup
-
-**핸들러**
-| 핸들러 | 동작 |
-|--------|------|
-| `handleSearch` | getZoneList 호출 → zoneItems 세팅, locItems/selectedZoneCd 초기화 |
-| `handleZoneSelect` | 행 클릭 시 srvcCd·whCd·zoneCd 추출 → getLocList 호출 → locItems 세팅 |
-| `handleSave` | `isNew\|\|isDirty` 존+로케이션 전체 수집 → confirm → saveInfo → handleSearch 재조회 |
-| `handleExcel` | ExcelJS로 zoneItems 엑셀 다운로드 (존 리스트만) |
-
-**JSX 변경**
-- 조회/저장/엑셀 버튼 onClick 연결
-- 존·로케이션·사용여부 조회조건 value/onChange 바인딩
-- `<Popup>` 컴포넌트 추가
+#### 백엔드 공통 수정 사항
+- `commonCodeMapper.xml` — `selectCommonCodeList` 파라미터 `#{sysGrpCd}` → `#{sys_grp_cd}` (프론트 snake_case 요청 대응)
+- `WmsMaster0010Service.kt` — `selectCommonCodeCheck` 호출 파라미터 camelCase 유지 (`mapOf("sysGrpCd" to ...)`)
 
 ---
 
