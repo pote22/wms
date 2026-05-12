@@ -95,7 +95,7 @@ class WmsMaster0010Service(
             }
 
             if (tonClsCd.isNotEmpty()) {
-                val tonCdCheck = commonCodeMapper.selectTonClsCdCheck(tonClsCd)
+                val tonCdCheck = commonCodeMapper.selectCommonCodeCheck(mapOf("sysGrpCd" to "WM1010", "sysCd" to tonClsCd))
 
                 if (tonCdCheck.isNullOrEmpty()) {
                     errors.add("톤급: 허용값 아님")

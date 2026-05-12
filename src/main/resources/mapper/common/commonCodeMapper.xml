@@ -4,25 +4,24 @@
 
 <mapper namespace="com.cjlogistics.wms.common.mapper.CommonCodeMapper">
     <!-- 공통코드 : 차량 톤(무기) 목록 조회 -->
-    <select id="selectVehicleTonList" resultType="Map">
+    <select id="selectCommonCodeList" resultType="Map">
         SELECT SYS_CD
              , SYS_CDNM
-          FROM TB_COMM_CODE
-         WHERE 1=1
-           AND sys_md_cd = 'WM'			    -- WM 업무
-           AND sys_mc_cd = 'WM10001'	  -- Ton 관리목록
-           AND USE_YN    = 'Y'
+          FROM WMS.TB_COMM_CODE
+         WHERE 1 = 1
+           AND SYS_GRP_CD = #{ sys_grp_cd }   -- 그룹 코드
+           AND USE_YN     = 'Y'
+         ORDER BY SYS_SORT_SEQ, SYS_CD
     </select>
 
     <!-- 공통코드 : 차량 톤수 정합성 체크 -->
-    <select id="selectTonClsCdCheck" resultType="String">
+    <select id="selectCommonCodeCheck" resultType="String">
         SELECT SYS_CD
           FROM WMS.TB_COMM_CODE
          WHERE 1 = 1
-           AND SYS_MD_CD = 'WM'         -- WM
-           AND SYS_MC_CD = 'WM10001'    -- 차량별 톤급 리스트
-           AND SYS_CD    = #{tonClsCd}
-           AND USE_YN    = 'Y'
+           AND SYS_GRP_CD = #{ sys_grp_cd }   -- 그룹 코드
+           AND SYS_CD     = #{ sys_cd }      -- 공통 코드
+           AND USE_YN     = 'Y'             -- 사용여부 : Y (사용중인 코드 대상으로 검색)
     </select>
 
     <!-- 공통 : 품목 검색 팝업 조회 -->

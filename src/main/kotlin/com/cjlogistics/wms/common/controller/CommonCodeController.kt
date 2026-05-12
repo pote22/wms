@@ -16,10 +16,10 @@ class CommonCodeController(private val commonCodeService: CommonCodeService) {
     private val LOG = LoggerFactory.getLogger(CommonCodeController::class.java)
 
     /** 챠랑별 톤급 리스트 조회 */
-    @PostMapping("/getTonList")
-    fun getTonList() : ResponseEntity<Response> {
+    @PostMapping("/getCommonCodeList")
+    fun getCommonCodeList(@RequestBody paramMap: Map<String, Any>) : ResponseEntity<Response> {
         return try {
-            ResponseEntity.ok(commonCodeService.getTonList())
+            ResponseEntity.ok(commonCodeService.getCommonCodeList(paramMap))
         } catch (e: Exception) {
             ResponseEntity.status(500).body(
                 Response(

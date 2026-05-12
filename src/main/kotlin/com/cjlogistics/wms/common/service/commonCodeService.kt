@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service
 
 @Service
 class CommonCodeService(private val commonCodeMapper: CommonCodeMapper) {
-    fun getTonList() : Response {
-        val list = commonCodeMapper.selectVehicleTonList()
+    fun getCommonCodeList(paramMap: Map<String, Any>) : Response {
+        val list = commonCodeMapper.selectCommonCodeList(paramMap)
 
         return Response (
             resultCode      = "0000",
