@@ -51,6 +51,7 @@
            <if test="locCd != null and locCd != ''">
            AND LOC_CD	= #{ locCd }
            </if>
+           AND USE_YN = 'Y'
          ORDER BY SRVC_CD, WH_CD, ZONE_CD, LOC_CD
     </select>
 
