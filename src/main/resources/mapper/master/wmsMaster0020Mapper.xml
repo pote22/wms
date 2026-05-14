@@ -28,20 +28,20 @@
              , TO_CHAR(UPD_DATE, 'YYYY-MM-DD') AS UPD_DATE                      -- 수정일자
           FROM WMS.TB_CLIENT
          WHERE 1 = 1
-           AND SRVC_CD 	 = #{srvcCd}
+           AND SRVC_CD = #{srvcCd}
            AND WH_CD 	 = #{whCd}
            <if test="clientCd != null and clientCd != ''">
-           AND CLIENT_CD = #{clientCd}
+           AND CLIENT_CD LIKE '%' || #{clientCd} || '%'
            </if>
            <if test="clientCd != null and clientCd != ''">
-           AND USE_YN 	 = #{useYn}
+           AND USE_YN  = #{useYn}
            </if>
          ORDER BY SRVC_CD, WH_CD, CLIENT_CD
     </select>
 
     <!-- 거래처 정보 추가 및 업데이트 -->
     <insert id="mergeClientInfo" parameterType="map">
-        MERGE INTO WMS.TB_CLIENT 
+        MERGE INTO WMS.TB_CLIENT T
         USING (
                 SELECT #{srvcCd}            AS SRVC_CD
                      , #{whCd}              AS WH_CD
@@ -75,7 +75,7 @@
                 , UPD_ID = #{userId}
                 , UPD_DATE = NOW()
          WHEN NOT MATCHED THEN 
-            INSERT INTO (
+            INSERT (
                 SRVC_CD
               , WH_CD
               , CLIENT_CD
@@ -124,7 +124,7 @@
            AND SRVC_CD  = #{srvcCd}
            AND WH_CD    = #{whCd}
            AND CLIENT_CD IN 
-           <foreach item="clientInfo" collection="clientList" open="(" separator="," close=")">
+           <foreach item="clientInfo" collection="clientCdList" open="(" separator="," close=")">
               #{ clientInfo.clientCd }
            </foreach>
     </delete>

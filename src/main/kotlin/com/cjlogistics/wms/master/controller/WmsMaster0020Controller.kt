@@ -38,7 +38,7 @@ class WmsMaster0020Controller(private val wmsMaster0020Service : WmsMaster0020Se
 
     /** 거래처 정보 저장&업데이트 */
     @PostMapping("/saveClientInfo")
-    fun saveClientInfo(paramMap : Map<String, Any>) : ResponseEntity<Response> {
+    fun saveClientInfo(@RequestBody paramMap : Map<String, Any>) : ResponseEntity<Response> {
         LOG.info("---> saveClientInfo : ${ paramMap }")
 
         return try {
@@ -54,6 +54,7 @@ class WmsMaster0020Controller(private val wmsMaster0020Service : WmsMaster0020Se
                 )
             )
         } catch (e : Exception) {
+            LOG.error("saveClientInfo error : ${e.message}")
             ResponseEntity.status(500).body(
                 Response (
                     resultCode      = "9999",
@@ -68,7 +69,7 @@ class WmsMaster0020Controller(private val wmsMaster0020Service : WmsMaster0020Se
 
     /** 거래처정보 삭제 */
     @PostMapping("/removeClientInfo")
-    fun removeClientInfo(paramMap : Map<String, Any>) : ResponseEntity<Response> {
+    fun removeClientInfo(@RequestBody paramMap : Map<String, Any>) : ResponseEntity<Response> {
         LOG.info("---> saveClientInfo : ${ paramMap }")
 
         return try {
@@ -84,6 +85,7 @@ class WmsMaster0020Controller(private val wmsMaster0020Service : WmsMaster0020Se
                 )
             )
         } catch (e : Exception) {
+            LOG.error("removeClientInfo error : ${e.message}")
             ResponseEntity.status(500).body(
                 Response (
                     resultCode      = "9999",
@@ -98,12 +100,13 @@ class WmsMaster0020Controller(private val wmsMaster0020Service : WmsMaster0020Se
 
     /** 엑셀업로드 */
     @PostMapping("/getCheckList")
-    fun getCheckList(paramMap : Map<String, Any>) : ResponseEntity<Response> {
+    fun getCheckList(@RequestBody paramMap : Map<String, Any>) : ResponseEntity<Response> {
         LOG.info("---> getCheckList : ${ paramMap }")
 
         return try {
             ResponseEntity.ok(wmsMaster0020Service.getCheckList(paramMap))
         } catch (e : Exception) {
+            LOG.error("getCheckList error : ${e.message}")
              ResponseEntity.status(500).body(
                 Response (
                     resultCode      = "9999",
