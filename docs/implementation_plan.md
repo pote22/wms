@@ -17,6 +17,7 @@
 | Phase 11 | 차량관리 백엔드 구현 (WMS_MASTER_0010) | ✅ 완료 |
 | Phase 12 | 품목관리 백엔드 구현 (WMS_MASTER_0030) | ✅ 완료 |
 | Phase 13 | 존&로케이션 관리 기능 구현 (WMS_MASTER_0040) | ✅ 완료 |
+| Phase 14 | 거래처관리 기능 구현 (WMS_MASTER_0020) | ✅ 완료 |
 
 > 완료된 Phase 상세 → [`docs/history/backend_phases.md`](history/backend_phases.md)
 
@@ -40,6 +41,22 @@
 ### 참고
 - 현재 `WebConfig.kt`에 CORS 설정이 있으므로 Security 필터와 중복 설정 주의
 - 필터 순서: `JwtAuthenticationFilter` → `UsernamePasswordAuthenticationFilter` 앞에 위치
+
+---
+
+## Phase 14 — 거래처관리 기능 구현 (WMS_MASTER_0020) ✅
+
+### 구현 내용
+- `WmsMaster0020Controller.kt` — `@RequestMapping("/api/master/0020")`, POST `/getList` · `/saveClientInfo` · `/removeClientInfo` · `/getCheckList`
+- `WmsMaster0020Service.kt` — getList / saveClientInfo / removeClientInfo / getCheckList(엑셀 업로드 유효성 검증)
+- `WmsMaster0020Mapper.kt` — selectClientList / mergeClientInfo / deleteClientInfo
+- `wmsMaster0020Mapper.xml` — selectClientList(동적 조건) / mergeClientInfo(UPSERT) / deleteClientInfo(다건 IN)
+
+### 엑셀 업로드 유효성 검증 규칙 (getCheckList)
+- 거래처코드 필수
+- 사업자번호: 입력 시 10자리 이상
+- 연락처: `^0\d{1,2}-\d{3,4}-\d{4}$` 정규식
+- 이메일: `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$` 정규식
 
 ---
 
