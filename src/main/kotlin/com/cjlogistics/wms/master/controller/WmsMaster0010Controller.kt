@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
  * - 작성자 : pote22
  */
 @RestController
-@RequestMapping("/api/master/vehicle")
+@RequestMapping("/api/master/0010")
 class WmsMaster0010Controller(private val wmsMaster0010Service: WmsMaster0010Service) {
 
         private val LOG = LoggerFactory.getLogger(WmsMaster0010Controller::class.java)

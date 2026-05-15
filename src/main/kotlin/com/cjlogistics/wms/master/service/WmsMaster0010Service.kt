@@ -91,19 +91,19 @@ class WmsMaster0010Service(
             val hpNo        = vehicle["hpNo"]?.toString()?.replace(nullRegx, "")?.trim() ?: ""
 
             if (vehicleNo.isEmpty()) {
-                errors.add("차량번호 필수값 누락")
+                errors.add("차량번호 ")
             }
 
             if (tonClsCd.isNotEmpty()) {
                 val tonCdCheck = commonCodeMapper.selectCommonCodeCheck(mapOf("sysGrpCd" to "WM1010", "sysCd" to tonClsCd))
 
                 if (tonCdCheck.isNullOrEmpty()) {
-                    errors.add("톤급: 허용값 아님")
+                    errors.add("톤급 ")
                 }
             }
 
             if (hpNo.isNotEmpty() && !hpNo.matches(hpNoRegx)) {
-                errors.add("HP번호: 형식 오류 (예: 010-1234-5678)")
+                errors.add("H.P번호 ")
             }
 
             mapOf("rowIndex" to idx, "isValid" to errors.isEmpty(), "errors" to errors)
