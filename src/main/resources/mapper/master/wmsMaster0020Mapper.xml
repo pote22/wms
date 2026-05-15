@@ -33,7 +33,7 @@
            <if test="clientCd != null and clientCd != ''">
            AND CLIENT_CD LIKE '%' || #{clientCd} || '%'
            </if>
-           <if test="clientCd != null and clientCd != ''">
+           <if test="useYn != null and useYn != ''">
            AND USE_YN  = #{useYn}
            </if>
          ORDER BY SRVC_CD, WH_CD, CLIENT_CD
