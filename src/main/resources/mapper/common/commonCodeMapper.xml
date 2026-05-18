@@ -10,11 +10,30 @@
           FROM WMS.TB_COMM_CODE
          WHERE 1 = 1
            AND SYS_GRP_CD = #{ sys_grp_cd }   -- 그룹 코드
+           <if test="srvc_cd != null and srvc_cd != ''">
+           AND SRVC_CD = #{ srvc_cd }
+           </if> 
+           <if test="sys_etc1 != null and sys_etc1 != ''">
+           AND SYS_ETC1 = #{ sys_etc1 }
+           </if>
+           <if test="sys_etc2 != null and sys_etc2 != ''">
+           AND SYS_ETC2 = #{ sys_etc2 }
+           </if>
+           <if test="sys_etc3 != null and sys_etc3 != ''">
+           AND SYS_ETC3 = #{ sys_etc3 }
+           </if>
+           <if test="sys_etc4 != null and sys_etc4 != ''">
+           AND SYS_ETC4 = #{ sys_etc4 }
+           </if>
+           <if test="sys_etc5 != null and sys_etc5 != ''">
+           AND SYS_ETC5 = #{ sys_etc5 }
+           </if>
            AND USE_YN     = 'Y'
+
          ORDER BY SYS_SORT_SEQ, SYS_CD
     </select>
 
-    <!-- 공통코드 : 차량 톤수 정합성 체크 -->
+    <!-- 공통코드 : 정합성 체크 -->
     <select id="selectCommonCodeCheck" resultType="String">
         SELECT SYS_CD
           FROM WMS.TB_COMM_CODE
