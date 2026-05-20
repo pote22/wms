@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+          "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+          
+<mapper namespace="com.cjlogistics.wms.receipt.mapper.WmsReceipt0010Mapper">
+    <!-- 입고조회(헤더) -->
+    <select id="selectReceiptHeaderList" parameterType="map" resultType="map">
+        SELECT SRVC_CD
+             , WH_CD
+             , IN_NO
+             , RECEIPT_CLS_CD
+             , IN_EXPECTED_DATE
+             , IN_EXPECTED_NO
+             , VENDOR_CD
+             , VENDOR_NM
+             , IN_V_ID
+             , IN_V_NO
+             , IN_V_NM
+             , TOTLINE
+             , COALESCE(NULLIF(ORIGINAL_QTY, 0), 0) AS ORIGINAL_QTY
+             , COALESCE(NULLIF(EXPECTED_QTY, 0), 0) AS EXPECTED_QTY
+             , COALESCE(NULLIF(RECEIVED_QTY, 0), 0) AS RECEIVED_QTY
+             , STATUS
+             , RMK
+             , RECEIPT_DATE
+             , RECEIPT_NO
+             , RECEIPT_TYPE
+          FROM WMS.TB_RECEIPT_H
+         WHERE 1 = 1
+           AND SRVC_CD = #{srvcCd}
+           AND WH_CD = #{whCd}
+           <if test="inNo != null and inNo != ''">
+           AND IN_NO = #{inNo}
+          </if>
+    </select>
+
+    <!-- 입고조회(디테일)-->
+    <select id="selectReceiptDetailList" parameterType="map" resultType="map">
+        SELECT SRVC_CD
+             , WH_CD
+             , IN_NO
+             , IN_EXPECTED_DATE
+             , IN_EXPECTED_NO
+             , IN_EXPECTED_SEQ
+             , VENDOR_CD
+             , VENDOR_NM
+             , PROD_CD
+             , COALESCE(NULLIF(fn_get_prod_nm(SRVC_CD, WH_CD, PROD_CD), ''), '') AS PROD_NM
+             , COALESCE(NULLIF(ORIGINAL_QTY, 0), 0) AS ORIGINAL_QTY 
+             , COALESCE(NULLIF(EXPECTED_QTY, 0), 0) AS EXPECTED_QTY
+             , COALESCE(NULLIF(OPEN_QTY, 0), 0) AS OPEN_QTY
+             , COALESCE(NULLIF(TEMP_QTY, 0), 0) AS TEMP_QTY
+             , COALESCE(NULLIF(RECEIVED_QTY, 0), 0) AS RECEIVED_QTY
+             , STATUS
+             , RMK
+             , IN_ZONE_CD 
+             , COALESCE(NULLIF(FN_GET_PROD_NM(SRVC_CD, WH_CD, IN_ZONE_CD), ''), '') AS IN_ZONE_NM
+             , COALESCE(NULLIF(WMS.FN_GET_USER_NM(REG_ID),''),'') AS REG_ID
+             , TO_CHAR(REG_DATE,'YYYY-MM-DD') AS REG_DATE 
+             , COALESCE(NULLIF(WMS.FN_GET_USER_NM(UPD_ID),''),'') AS UPD_ID
+             , TO_CHAR(UPD_DATE,'YYYY-MM-DD') AS UPD_DATE
+          FROM WMS.TB_RECEIPT_D
+         WHERE 1 = 1
+           AND SRVC_CD = #{srvcCd}
+           AND WH_CD = #{whCd}
+           <if test="inNo != null and inNo != ''">
+           AND IN_NO = #{inNo}
+           </if>
+         ORDER BY IN_EXPECTED_SEQ
+    </select>
+
+    <!-- 신규 입고 순번 발급 -->
+    <select id="selectReceptKeyInfo" parameterType="map" resultType="map">
+        SELECT nextval('WMS.SEQ_TB_RECEIPT_IN_EXPECTED_NO_SEQ')::text AS IN_NO_SEQ
+             , TO_CHAR(NOW(), 'YYYYMMDD') AS TODAY
+    </select>
+
+    <!-- 입고저장(헤더) -->
+    <insert id="mergeReceiptHeaderInfo" parameterType="map">
+    </insert>
+
+    <!-- 입고저장(디테일) -->
+    <insert id="mergeReceiptDetailInfo" parameterType="map">
+    </insert>
+</mapper>
