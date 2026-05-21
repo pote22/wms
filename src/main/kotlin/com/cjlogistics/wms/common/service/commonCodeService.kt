@@ -29,4 +29,52 @@ class CommonCodeService(private val commonCodeMapper: CommonCodeMapper) {
             data            = list
         )
     }
+
+    fun getVehicleSearchList(paramMap: Map<String, Any>): Response {
+        val list = commonCodeMapper.selectVehicleSearchList(paramMap)
+
+        return Response(
+            resultCode      = "0000",
+            resultMessage   = "정상적으로 처리되었습니다.",
+            accessToken     = "",
+            expireDate      = null,
+            data            = list
+        )
+    }
+
+    fun getZoneSearchList(paramMap: Map<String, Any>): Response {
+        val list = commonCodeMapper.selectZoneSearchList(paramMap)
+
+        return Response(
+            resultCode      = "0000",
+            resultMessage   = "정상적으로 처리되었습니다.",
+            accessToken     = "",
+            expireDate      = null,
+            data            = list
+        )
+    }
+
+    fun getClientSearchList(paramMap: Map<String, Any>): Response {
+        val list = commonCodeMapper.selectClientSearchList(paramMap)
+
+        return Response(
+            resultCode      = "0000",
+            resultMessage   = "정상적으로 처리되었습니다.",
+            accessToken     = "",
+            expireDate      = null,
+            data            = list
+        )
+    }
+
+    fun getLocSearchList(paramMap: Map<String, Any>): Response {
+        val list = commonCodeMapper.selectLocSearchList(paramMap)
+
+        return Response(
+            resultCode      = "0000",
+            resultMessage   = "정상적으로 처리되었습니다.",
+            accessToken     = "",
+            expireDate      = null,
+            data            = list
+        )
+    }
 }
