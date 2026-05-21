@@ -42,6 +42,7 @@
              , IN_EXPECTED_DATE
              , IN_EXPECTED_NO
              , IN_EXPECTED_SEQ
+             , LOT_NO
              , VENDOR_CD
              , VENDOR_NM
              , PROD_CD
