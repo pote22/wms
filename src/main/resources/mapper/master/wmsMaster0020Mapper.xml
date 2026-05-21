@@ -31,7 +31,7 @@
            AND SRVC_CD = #{srvcCd}
            AND WH_CD 	 = #{whCd}
            <if test="clientCd != null and clientCd != ''">
-           AND CLIENT_CD LIKE '%' || #{clientCd} || '%'
+           AND CLIENT_CD = #{clientCd}
            </if>
            <if test="useYn != null and useYn != ''">
            AND USE_YN  = #{useYn}
