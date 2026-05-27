@@ -4,7 +4,7 @@
           
 <mapper namespace="com.cjlogistics.wms.receipt.mapper.WmsReceipt0010Mapper">
     <!-- 입고조회(헤더) -->
-    <select id="selectReceiptHeaderList" parameterType="map" resultType="map">
+    <select id="selectRcptHdrList" parameterType="map" resultType="map">
         SELECT SRVC_CD
              , WH_CD
              , IN_NO
@@ -35,7 +35,7 @@
     </select>
 
     <!-- 입고조회(디테일)-->
-    <select id="selectReceiptDetailList" parameterType="map" resultType="map">
+    <select id="selectRcptDtlList" parameterType="map" resultType="map">
         SELECT SRVC_CD
              , WH_CD
              , IN_NO
@@ -46,7 +46,7 @@
              , VENDOR_CD
              , VENDOR_NM
              , PROD_CD
-             , COALESCE(NULLIF(fn_get_prod_nm(SRVC_CD, WH_CD, PROD_CD), ''), '') AS PROD_NM
+             , COALESCE(NULLIF(WMS.FN_GET_PROD_NM(SRVC_CD, WH_CD, PROD_CD), ''), '') AS PROD_NM
              , COALESCE(NULLIF(ORIGINAL_QTY, 0), 0) AS ORIGINAL_QTY 
              , COALESCE(NULLIF(EXPECTED_QTY, 0), 0) AS EXPECTED_QTY
              , COALESCE(NULLIF(OPEN_QTY, 0), 0) AS OPEN_QTY
@@ -55,7 +55,7 @@
              , STATUS
              , RMK
              , IN_ZONE_CD 
-             , COALESCE(NULLIF(FN_GET_PROD_NM(SRVC_CD, WH_CD, IN_ZONE_CD), ''), '') AS IN_ZONE_NM
+             , COALESCE(NULLIF(WMS.FN_GET_ZONE_NM(SRVC_CD, WH_CD, IN_ZONE_CD), ''), '') AS IN_ZONE_NM
              , COALESCE(NULLIF(WMS.FN_GET_USER_NM(REG_ID),''),'') AS REG_ID
              , TO_CHAR(REG_DATE,'YYYY-MM-DD') AS REG_DATE 
              , COALESCE(NULLIF(WMS.FN_GET_USER_NM(UPD_ID),''),'') AS UPD_ID
@@ -71,16 +71,120 @@
     </select>
 
     <!-- 신규 입고 순번 발급 -->
-    <select id="selectReceptKeyInfo" parameterType="map" resultType="map">
+    <select id="selectRcptKeyInfo" parameterType="map" resultType="map">
         SELECT nextval('WMS.SEQ_TB_RECEIPT_IN_EXPECTED_NO_SEQ')::text AS IN_NO_SEQ
              , TO_CHAR(NOW(), 'YYYYMMDD') AS TODAY
     </select>
 
+    <!-- 입고번호 존재 여부 확인 -->
+    <select id="selectRcptStatusInfo" parameterType="map" resultType="string">
+        SELECT STATUS
+          FROM WMS.TB_RECEIPT_H
+         WHERE SRVC_CD = #{srvcCd}
+           AND WH_CD   = #{whCd}
+           AND IN_NO   = #{inNo}
+    </select>
+
     <!-- 입고저장(헤더) -->
-    <insert id="mergeReceiptHeaderInfo" parameterType="map">
+    <insert id="insertRcptHdrInfo" parameterType="map">
+        INSERT INTO WMS.TB_RECEIPT_H (
+            SRVC_CD
+          , WH_CD
+          , IN_NO
+          , RECEIPT_CLS_CD
+          , IN_EXPECTED_DATE
+          , IN_EXPECTED_NO
+          , VENDOR_CD
+          , VENDOR_NM
+          , IN_V_ID
+          , IN_V_NO
+          , IN_V_NM
+          , TOTLINE
+          , ORIGINAL_QTY
+          , EXPECTED_QTY
+          , STATUS
+          , RMK
+          , RECEIPT_TYPE
+          , REG_ID
+          , REG_DATE
+        ) VALUES (
+            #{srvcCd}
+          , #{whCd}
+          , #{inNo}
+          , #{receiptClsCd}
+          , #{inExpectedDate}
+          , #{inExpectedNo}
+          , #{vendorCd}
+          , #{vendorNm}
+          , #{inVId}
+          , #{inVNo}
+          , #{inVNm}
+          , #{totline}
+          , #{originalQty}
+          , #{originalQty}
+          , #{status}
+          , #{rmk}
+          , #{receiptType}
+          , #{userId}
+          , NOW()
+        )
     </insert>
 
     <!-- 입고저장(디테일) -->
-    <insert id="mergeReceiptDetailInfo" parameterType="map">
+    <insert id="insertRcptDtlInfo" parameterType="map">
+        INSERT INTO WMS.TB_RECEIPT_D (
+            SRVC_CD
+          , WH_CD
+          , IN_NO
+          , IN_EXPECTED_DATE
+          , IN_EXPECTED_NO
+          , IN_EXPECTED_SEQ
+          , LOT_NO
+          , VENDOR_CD
+          , VENDOR_NM
+          , PROD_CD
+          , ORIGINAL_QTY
+          , EXPECTED_QTY
+          , OPEN_QTY
+          , TEMP_QTY
+          , RECEIVED_QTY
+          , STATUS
+          , RMK
+          , IN_ZONE_CD
+          , IN_LOC_CD
+          , REG_ID
+          , REG_DATE
+        ) VALUES (
+            #{srvcCd}
+          , #{whCd}
+          , #{inNo}
+          , #{inExpectedDate}
+          , #{inExpectedNo}
+          , (
+                SELECT COALESCE(NULLIF(MAX(IN_EXPECTED_SEQ), 0), 0) + 1
+                  FROM WMS.TB_RECEIPT_D
+                 WHERE 1 = 1
+                   AND SRVC_CD          = #{srvcCd}
+                   AND WH_CD            = #{whCd}
+                   AND IN_NO            = #{inNo}
+                   AND IN_EXPECTED_NO   = #{inExpectedNo}
+
+            )
+          , #{lotNo}
+          , #{vendorCd}
+          , #{vendorNm}
+          , #{prodCd}
+          , #{originalQty}
+          , #{originalQty}
+          , 0
+          , 0
+          , 0
+          , #{status}
+          , #{rmk}
+          , #{inZoneCd}
+          , #{inLocCd}
+          , #{userId}
+          , NOW()
+        )
     </insert>
 </mapper>

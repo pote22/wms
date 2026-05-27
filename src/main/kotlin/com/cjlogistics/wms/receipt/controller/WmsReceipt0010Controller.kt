@@ -61,4 +61,35 @@ class WmsReceipt0010Controller(private val wmsReceipt0010Service: WmsReceipt0010
             )
         }   
     }
+
+    /** 입고 등록 */
+    @PostMapping("/saveReceiptList")
+    fun saveReceipt(@RequestBody paramMap : Map<String, Any>) : ResponseEntity<Response> {
+        LOG.info("---> saveReceipt : ${ paramMap }")
+
+        return try {
+            ResponseEntity.ok(wmsReceipt0010Service.saveReceiptList(paramMap))
+        } catch (ie : IllegalArgumentException) {
+            ResponseEntity.status(400).body(
+                Response(
+                    resultCode      = "0001",
+                    resultMessage   = ie.message,
+                    accessToken     = "",
+                    expireDate      = null,
+                    data            = null
+                )
+            )
+        } catch (e : Exception) {
+            LOG.error("saveReceipt error : ${e.message}")
+            ResponseEntity.status(500).body(
+                Response(
+                    resultCode      = "9999",
+                    resultMessage   = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                    accessToken     = "",
+                    expireDate      = null,
+                    data            = null
+                )
+            )
+        }
+    }
 }
