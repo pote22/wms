@@ -18,6 +18,7 @@
 | Phase 12 | 품목관리 백엔드 구현 (WMS_MASTER_0030) | ✅ 완료 |
 | Phase 13 | 존&로케이션 관리 기능 구현 (WMS_MASTER_0040) | ✅ 완료 |
 | Phase 14 | 거래처관리 기능 구현 (WMS_MASTER_0020) | ✅ 완료 |
+| Phase 15 | 입고등록 백엔드 구현 (WMS_RECEIPT_0010) | ✅ 완료 |
 
 > 완료된 Phase 상세 → [`docs/history/backend_phases.md`](history/backend_phases.md)
 
@@ -41,6 +42,76 @@
 ### 참고
 - 현재 `WebConfig.kt`에 CORS 설정이 있으므로 Security 필터와 중복 설정 주의
 - 필터 순서: `JwtAuthenticationFilter` → `UsernamePasswordAuthenticationFilter` 앞에 위치
+
+---
+
+## Phase 15 — 입고등록 백엔드 구현 (WMS_RECEIPT_0010) ✅
+
+### 신규 파일
+
+#### `WmsReceipt0010Controller.kt`
+- `@RequestMapping("/api/receipt/0010")`
+- `POST /getList` — 헤더+디테일 조회
+- `POST /getKeyInfo` — 입고번호 채번 (SEQ)
+- `POST /saveReceiptList` — 헤더+디테일 저장
+- `POST /getCheckList` — 엑셀업로드 유효성 검증
+
+#### `WmsReceipt0010Service.kt`
+| 메서드 | 설명 |
+|--------|------|
+| `getList` | selectRcptHdrList → 결과 있을 때만 selectRcptDtlList 조회 |
+| `getKeyInfo` | SEQ nextval → 오늘날짜 + 순번 조합으로 입고번호 생성 |
+| `saveReceiptList` | ① 입고번호 중복 확인 → ② 품목/존/로케이션 재검증 → ③ 헤더 저장 → ④ 디테일 저장 |
+| `getCheckList` | `setCheckRows` 호출 — 행 단위 유효성 검증 후 결과 반환 |
+| `setCheckRows` (private) | 5개 항목 검증 (아래 참조) |
+
+#### `WmsReceipt0010Mapper.kt`
+```kotlin
+fun selectRcptHdrList(map: Map<String, Any>)    : List<Map<String, Any>>
+fun selectRcptDtlList(map: Map<String, Any>)    : List<Map<String, Any>>
+fun selectRcptKeyInfo(map: Map<String, Any>)    : List<Map<String, Any>>
+fun selectRcptStatusInfo(map: Map<String, Any>) : String?
+fun insertRcptHdrInfo(map: Map<String, Any>)    : Int
+fun insertRcptDtlInfo(map: Map<String, Any>)    : Int
+```
+
+#### `wmsReceipt0010Mapper.xml`
+| 쿼리 ID | 설명 |
+|---------|------|
+| `selectRcptHdrList` | TB_RECEIPT_H 조회 (srvcCd · whCd · inNo 조건) |
+| `selectRcptDtlList` | TB_RECEIPT_D 조회 + FN_GET_PROD_NM · FN_GET_ZONE_NM 함수 적용 |
+| `selectRcptKeyInfo` | `nextval('WMS.SEQ_TB_RECEIPT_IN_EXPECTED_NO_SEQ')` + TODAY |
+| `selectRcptStatusInfo` | 입고번호 중복 여부 확인 |
+| `insertRcptHdrInfo` | TB_RECEIPT_H INSERT |
+| `insertRcptDtlInfo` | TB_RECEIPT_D INSERT (IN_EXPECTED_SEQ: MAX+1 서브쿼리 자동 채번) |
+
+### 공통 파일 수정
+
+#### `CommonCodeMapper.kt` — 3개 메서드 추가
+```kotlin
+fun selectProdCheck(map: Map<String, Any>) : String?   // TB_ITEM 존재 여부
+fun selectZoneCheck(map: Map<String, Any>) : String?   // TB_ZONE 존재 여부
+fun selectLocCheck(map: Map<String, Any>)  : String?   // TB_LOC  존재 여부
+```
+
+#### `commonCodeMapper.xml` — 3개 SQL 추가
+- `selectProdCheck` — `TB_ITEM WHERE PROD_CD = #{prodCd} AND USE_YN = 'Y'`
+- `selectZoneCheck` — `TB_ZONE WHERE ZONE_CD = #{zoneCd} AND USE_YN = 'Y'`
+- `selectLocCheck`  — `TB_LOC  WHERE ZONE_CD = #{zoneCd} AND LOC_CD = #{locCd} AND USE_YN = 'Y'`
+
+### 엑셀업로드 유효성 검증 규칙 (getCheckList — setCheckRows)
+| 항목 | 규칙 | 에러 메시지 |
+|------|------|-------------|
+| 품목코드 | 필수 + TB_ITEM 존재 여부 | `품목코드` |
+| 존코드 | 필수 + TB_ZONE 존재 여부 | `존코드` |
+| 로케이션 | 필수 + TB_LOC 존재 여부 | `로케이션` |
+| 수량 | `^[0-9]+$` 정수 형식 + 0 초과 | `수량` |
+| 입고일자 | 필수 + `^\d{8}$` (yyyyMMdd) | `입고일자` |
+
+### 저장 재검증 (saveReceiptList)
+- 헤더 저장 **전** 모든 디테일 행에 대해 품목코드·존코드·로케이션 DB 재검증
+- 실패 시 `IllegalArgumentException("N번째 행: ...")` → Controller 400 응답
+- 검증 통과 후 헤더 → 디테일 순 저장
 
 ---
 

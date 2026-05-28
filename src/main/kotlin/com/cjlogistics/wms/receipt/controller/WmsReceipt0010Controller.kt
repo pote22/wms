@@ -62,6 +62,27 @@ class WmsReceipt0010Controller(private val wmsReceipt0010Service: WmsReceipt0010
         }   
     }
 
+    /** 엑셀 업로드 유효성 검증 */
+    @PostMapping("/getCheckList")
+    fun getCheckList(@RequestBody paramMap : Map<String, Any>) : ResponseEntity<Response> {
+        LOG.info("---> getCheckList : ${ paramMap }")
+
+        return try {
+            ResponseEntity.ok(wmsReceipt0010Service.getCheckList(paramMap))
+        } catch (e : Exception) {
+            LOG.error("getCheckList error : ${e.message}")
+            ResponseEntity.status(500).body(
+                Response(
+                    resultCode      = "9999",
+                    resultMessage   = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                    accessToken     = "",
+                    expireDate      = null,
+                    data            = null
+                )
+            )
+        }
+    }
+
     /** 입고 등록 */
     @PostMapping("/saveReceiptList")
     fun saveReceipt(@RequestBody paramMap : Map<String, Any>) : ResponseEntity<Response> {

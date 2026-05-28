@@ -56,6 +56,7 @@
              , RMK
              , IN_ZONE_CD 
              , COALESCE(NULLIF(WMS.FN_GET_ZONE_NM(SRVC_CD, WH_CD, IN_ZONE_CD), ''), '') AS IN_ZONE_NM
+             , IN_LOC_CD
              , COALESCE(NULLIF(WMS.FN_GET_USER_NM(REG_ID),''),'') AS REG_ID
              , TO_CHAR(REG_DATE,'YYYY-MM-DD') AS REG_DATE 
              , COALESCE(NULLIF(WMS.FN_GET_USER_NM(UPD_ID),''),'') AS UPD_ID
@@ -67,7 +68,7 @@
            <if test="inNo != null and inNo != ''">
            AND IN_NO = #{inNo}
            </if>
-         ORDER BY IN_EXPECTED_SEQ
+         ORDER BY IN_NO, IN_EXPECTED_SEQ
     </select>
 
     <!-- 신규 입고 순번 발급 -->

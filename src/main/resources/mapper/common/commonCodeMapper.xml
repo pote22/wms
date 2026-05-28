@@ -132,4 +132,35 @@
            AND USE_YN  = 'Y'
          ORDER BY PROD_CD
     </select>
+
+    <!-- 공통 : 품목코드 존재 여부 체크 -->
+    <select id="selectProdCheck" parameterType="map" resultType="string">
+        SELECT PROD_CD
+          FROM WMS.TB_ITEM
+         WHERE SRVC_CD = #{srvcCd}
+           AND WH_CD   = #{whCd}
+           AND PROD_CD = #{prodCd}
+           AND USE_YN  = 'Y'
+    </select>
+
+    <!-- 공통 : 존코드 존재 여부 체크 -->
+    <select id="selectZoneCheck" parameterType="map" resultType="string">
+        SELECT ZONE_CD
+          FROM WMS.TB_ZONE
+         WHERE SRVC_CD = #{srvcCd}
+           AND WH_CD   = #{whCd}
+           AND ZONE_CD = #{zoneCd}
+           AND USE_YN  = 'Y'
+    </select>
+
+    <!-- 공통 : 로케이션 존재 여부 체크 -->
+    <select id="selectLocCheck" parameterType="map" resultType="string">
+        SELECT LOC_CD
+          FROM WMS.TB_LOC
+         WHERE SRVC_CD = #{srvcCd}
+           AND WH_CD   = #{whCd}
+           AND ZONE_CD = #{zoneCd}
+           AND LOC_CD  = #{locCd}
+           AND USE_YN  = 'Y'
+    </select>
 </mapper>
