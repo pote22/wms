@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+          "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+          
+<mapper namespace="com.cjlogistics.wms.receipt.mapper.WmsReceipt0020Mapper">
+    <!-- 입고예정 리스트 조회 -->
+    <select id="selectReceiptList" parameterType="map" resultType="map">
+        SELECT H.SRVC_CD                                                                                                -- 고객사
+             , H.WH_CD                                                                                                  -- 센터
+             , H.IN_NO                                                                                                  -- 입고번호
+             , TO_CHAR(TO_DATE(H.IN_EXPECTED_DATE, 'YYYYMMDD'), 'YYYY-MM-DD')                   AS IN_EXPECTED_DATE     -- 입고예정일
+             , H.IN_EXPECTED_NO                                                                                         -- 입고예정번호
+             , D.IN_EXPECTED_SEQ                                                                                        -- 입고예정순번
+             , D.STATUS                                                                                                 -- 입고상태
+             , H.RECEIPT_CLS_CD                                                                                         -- 입고구분
+             , H.RECEIPT_TYPE                                                                                           -- 입고유형
+             , TO_CHAR(H.RECEIPT_DATE, 'YYYY-MM-DD')                                            AS RECEIPT_DATE         -- 입고일자
+             , H.VENDOR_CD                                                                                              -- 매입처코드
+             , H.VENDOR_NM                                                                                              -- 매입처명
+             , D.PROD_CD                                                                                                -- 품목코드
+             , COALESCE(NULLIF(WMS.FN_GET_PROD_NM(D.SRVC_CD, D.WH_CD, D.PROD_CD), ''), '')      AS PROD_NM              -- 품목명
+             , D.IN_ZONE_CD                                                                                             -- 존
+             , COALESCE(NULLIF(WMS.FN_GET_ZONE_NM(D.SRVC_CD, D.WH_CD, D.IN_ZONE_CD), ''), '')   AS IN_ZONE_NM           -- 존명
+             , D.IN_LOC_CD                                                                                                -- 로케이션
+             , COALESCE(NULLIF(D.ORIGINAL_QTY, 0), 0)                                           AS ORIGINAL_QTY         -- 원입고예정량
+             , COALESCE(NULLIF(D.EXPECTED_QTY, 0), 0)                                           AS EXPECTED_QTY         -- 입고예정량
+             , COALESCE(NULLIF(D.RECEIVED_QTY, 0), 0)                                           AS RECEIVED_QTY         -- 입고확정량
+             , (COALESCE(NULLIF(D.RECEIVED_QTY, 0), 0) * COALESCE(NULLIF(D.WEIGHT, 0), 0))      AS TOT_IN_WEIGHT        -- 총중량
+             , COALESCE(NULLIF(D.PDA_SCAN_QTY, 0), 0)                                           AS PDA_SCAN_QTY         -- 스캔수량
+             , COALESCE(NULLIF(D.PDA_SCAN_CNT, 0), 0)                                           AS PDA_SCAN_CNT         -- 스캔건수
+             , D.NOT_RSN_CD                                                                                             -- 미입고사유
+             , H.VENDOR_ADDRESS                                                                                         -- 업체주소
+             , H.ZIP_CD                                                                                                 -- 우편번호
+             , H.MANAGER_NM                                                                                             -- 담당자명
+             , H.TEL_NO                                                                                                 -- 연락처
+             , H.IN_V_NO                                                                                                -- 차량번호
+             , H.IN_V_NM                                                                                                -- 차량기사
+             , COALESCE(NULLIF(D.PDA_YN, 'N'), 'N')                                             AS PDA_YN               -- PDA사용여부
+             , D.RMK                                                                                                    -- 비고
+             , COALESCE(NULLIF(WMS.FN_GET_USER_NM(D.REG_ID),''),'')                             AS REG_ID               -- 등록자
+             , TO_CHAR(D.REG_DATE,'YYYY-MM-DD')                                                 AS REG_DATE             -- 등록일자
+             , COALESCE(NULLIF(WMS.FN_GET_USER_NM(D.UPD_ID),''),'')                             AS UPD_ID               -- 수정자
+             , TO_CHAR(D.UPD_DATE,'YYYY-MM-DD')                                                 AS UPD_DATE             -- 수정일자
+          FROM WMS.TB_RECEIPT_H H
+             , WMS.TB_RECEIPT_D D
+         WHERE H.SRVC_CD            = D.SRVC_CD 
+           AND H.WH_CD              = D.WH_CD
+           AND H.IN_NO              = D.IN_NO
+           AND H.SRVC_CD            = #{ srvcCd }
+           AND H.WH_CD              = #{ whCd }
+           <if test="inNo != null and inNo != ''">
+           AND H.IN_NO LIKE '%' || #{ inNo } || '%'
+           </if>
+           <if test="receiptClsCd != null and receiptClsCd != ''">
+           AND H.RECEIPT_CLS_CD     = #{ receiptClsCd }
+           </if>
+           <if test="status != null and status != ''">
+           AND H.STATUS             = #{ status }
+           </if>
+           <if test="receiptType != null and receiptType != ''">
+           AND H.RECEIPT_TYPE       = #{ receiptType }
+           </if>
+           <if test="dateType == '00' and strDate != null and strDate != ''">
+           AND H.IN_EXPECTED_DATE   <![CDATA[>=]]> #{ strDate }
+           </if>
+           <if test="dateType == '00' and endDate != null and endDate != ''">
+           AND H.IN_EXPECTED_DATE   <![CDATA[<=]]> #{ endDate }
+           </if>
+           <if test="dateType == '09' and strDate != null and strDate != ''">
+           AND TO_CHAR(H.RECEIPT_DATE, 'YYYYMMDD') <![CDATA[>=]]> #{ strDate }
+           </if>
+           <if test="dateType == '09' and endDate != null and endDate != ''">
+           AND TO_CHAR(H.RECEIPT_DATE, 'YYYYMMDD') <![CDATA[<=]]> #{ endDate }
+           </if>
+           <if test="vendorCd != null and vendorCd != ''">
+           AND H.VENDOR_CD          = #{ vendorCd }
+           </if>
+           <if test="prodCd != null and prodCd != ''">
+           AND D.PROD_CD            = #{ prodCd }
+           </if>
+           <if test="vehicleNo != null and vehicleNo != ''">
+           AND H.IN_V_NO            = #{ vehicleNo }
+           </if>
+         ORDER BY H.SRVC_CD, H.WH_CD, H.IN_EXPECTED_DATE, H.IN_EXPECTED_NO, D.IN_EXPECTED_SEQ 
+    </select>
+
+    <!-- 입고예정 비고정보 저장 -->
+    <update id="updateReceiptRmkInfo" parameterType="map">
+        UPDATE WMS.TB_RECEIPT_D
+           SET RMK              = #{rmk}
+             , UPD_ID           = #{userId}
+             , UPD_DATE         = NOW()
+         WHERE 1 = 1
+           AND SRVC_CD          = #{srvcCd}
+           AND WH_CD            = #{whCd}
+           AND IN_NO            = #{inNo}
+           AND IN_EXPECTED_SEQ  = CAST(#{inExpectedSeq} AS NUMERIC)
+    </update>
+
+    <!-- 입고확정 -->
+    <update id="updateReceiptConfirmInfo" parameterType="map">
+        UPDATE WMS.TB_RECEIPT_D
+           SET STATUS           = '09'
+             , EXPECTED_QTY     = CAST(#{expectedQty} AS NUMERIC)
+             , RECEIVED_QTY     = CAST(#{receivedQty} AS NUMERIC)
+             , NOT_RSN_CD       = #{notRsnCd}
+             , RECEIPT_DATE     = NOW()
+             , UPD_ID           = #{userId}
+             , UPD_DATE         = NOW()
+         WHERE 1 = 1
+           AND SRVC_CD          = #{srvcCd}
+           AND WH_CD            = #{whCd}
+           AND IN_NO            = #{inNo}
+           AND IN_EXPECTED_SEQ  = CAST(#{inExpectedSeq} AS NUMERIC)
+           AND STATUS           = '00'
+    </update>
+</mapper>
