@@ -48,6 +48,7 @@ mcp-servers/**/.env
 .env
 .env.*
 !.env.example
+.codex/config.toml
 
 ### Claude Code local settings ###
 .claude/settings.local.json

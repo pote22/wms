@@ -1,85 +1,134 @@
 # WMS Project — Claude Code Agent Guide
 
-## 새 환경 셋업 (AI 연동 재설치 절차)
+---
 
-> 새 PC에서 이 파일을 참고하여 Claude Code에게 "CLAUDE.md 보고 AI 연동 진행해줘"라고 하면 아래 절차를 자동으로 수행합니다.
+## ⚡ git pull 후 업데이트 절차 (일상 작업 시 확인)
+
+> **집 ↔ 회사 작업 전환 시 MCP 서버 코드가 변경됐는지 먼저 확인하세요.**
+
+```bash
+# 변경 여부 확인
+git diff HEAD~1 --name-only | grep mcp-servers
+```
+
+| 결과 | 조치 |
+|------|------|
+| 출력 없음 | 그냥 작업 시작 |
+| 파일 목록 출력됨 | 아래 npm install 실행 후 VSCode 재시작 |
+
+```bash
+# MCP 서버 패키지 재설치
+cd c:\workspace\wms\mcp-servers\gemini-server && npm install
+cd c:\workspace\wms\mcp-servers\openai-server && npm install
+```
+
+---
+
+## 새 PC 셋업 (AI 연동 재설치 절차)
+
+> 새 PC에서 Claude Code에게 **"CLAUDE.md 보고 AI 연동 진행해줘"** 라고 하면 아래 절차를 자동으로 수행합니다.
 
 ### 사전 조건
-- Node.js 18.18 이상 설치 필요
+- Node.js 18.18 이상
+- Claude Code: `npm install -g @anthropic-ai/claude-code`
 - GEMINI_API_KEY, OPENAI_API_KEY 준비
+
+---
 
 ### 1단계 — MCP 서버 패키지 설치
 ```bash
-cd mcp-servers/gemini-server && npm install
-cd mcp-servers/openai-server && npm install
+cd c:\workspace\wms\mcp-servers\gemini-server && npm install
+cd c:\workspace\wms\mcp-servers\openai-server && npm install
 ```
 
-### 2단계 — Codex CLI 전역 설치 및 인증
+### 2단계 — 전역 패키지 설치
 ```bash
 npm install -g @openai/codex
-echo "OPENAI_API_KEY값" | codex login --with-api-key
-```
-
-### 3단계 — token-optimizer-mcp 전역 설치
-```bash
 npm install -g token-optimizer-mcp
 ```
 
-### 4단계 — .mcp.json 생성
-프로젝트 루트에 `.mcp.json` 파일 생성 (아래 형식 참고):
-```json
-{
-  "mcpServers": {
-    "gemini-research": {
-      "type": "stdio",
-      "command": "node",
-      "args": ["mcp-servers/gemini-server/server.js"],
-      "env": { "GEMINI_API_KEY": "실제_키_입력" }
-    },
-    "openai-coding": {
-      "type": "stdio",
-      "command": "node",
-      "args": ["mcp-servers/openai-server/server.js"],
-      "env": { "OPENAI_API_KEY": "실제_키_입력" }
-    },
-    "codex": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["codex-mcp-server"],
-      "env": { "OPENAI_API_KEY": "실제_키_입력" }
-    },
-    "token-optimizer": {
-      "type": "stdio",
-      "command": "token-optimizer-mcp"
-    }
-  }
-}
+### 3단계 — Codex CLI API 키 인증
+```bash
+echo "실제_OPENAI_API_KEY" | codex login --with-api-key
+# 인증 정보 저장 위치: ~/.codex/auth.json
 ```
 
-### 5단계 — Codex CLI API 키 인증
+### 4단계 — MCP 서버 사용자 레벨 등록
+
+> ✅ `--scope user` 로 등록하면 승인 팝업 없이 자동 연결됩니다.
+> ✅ `.mcp.json` 방식(프로젝트 레벨)보다 안정적이며 어떤 폴더를 열어도 항상 로드됩니다.
+
 ```bash
-echo "OPENAI_API_KEY값" | codex login --with-api-key
-# 인증 정보는 ~/.codex/auth.json 에 저장됨
+# Gemini 리서치
+claude mcp add gemini-research --scope user -e GEMINI_API_KEY=실제_키 -- node "c:\workspace\wms\mcp-servers\gemini-server\server.js"
+
+# OpenAI 코딩
+claude mcp add openai-coding --scope user -e OPENAI_API_KEY=실제_키 -- node "c:\workspace\wms\mcp-servers\openai-server\server.js"
+
+# Codex MCP
+claude mcp add codex --scope user -e OPENAI_API_KEY=실제_키 -- npx codex-mcp-server
+
+# Token Optimizer
+claude mcp add token-optimizer --scope user -- token-optimizer-mcp
+
+# PostgreSQL (Neon DB)
+claude mcp add postgres --scope user -- npx -y @modelcontextprotocol/server-postgres "postgres://neondb_owner:npg_76JnlAyBYdhu@ep-shiny-dust-amkn0p26-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require"
 ```
 
-### 6단계 — VSCode 재시작
-재시작 후 MCP 서버 4개(`gemini-research`, `openai-coding`, `codex`, `token-optimizer`) 자동 로드 확인
-
-> ⚠️ `.mcp.json`에 API 키가 평문 저장됨 — 공개 저장소에 push 금지
-
-### 연결 테스트
+### 5단계 — VSCode 재시작 후 연결 확인
 ```bash
-# OpenAI 연결 확인
-cd mcp-servers/openai-server
-OPENAI_API_KEY="키값" node -e "import OpenAI from 'openai'; const o = new OpenAI({apiKey: process.env.OPENAI_API_KEY}); const r = await o.chat.completions.create({model:'gpt-4o',messages:[{role:'user',content:'hi'}],max_tokens:10}); console.log('OK:', r.choices[0].message.content);"
+claude mcp list
+# 아래 8개가 모두 ✓ Connected 이면 정상
+# gemini-research / openai-coding / codex / token-optimizer
+# postgres / Gmail / Google Calendar / Google Drive
+```
 
-# Gemini 연결 확인
-cd mcp-servers/gemini-server
-GEMINI_API_KEY="키값" node -e "import {GoogleGenerativeAI} from '@google/generative-ai'; const m = new GoogleGenerativeAI(process.env.GEMINI_API_KEY).getGenerativeModel({model:'gemini-2.0-flash'}); const r = await m.generateContent('hi'); console.log('OK:', r.response.text().slice(0,30));"
+---
 
-# token-optimizer 설치 확인
+### 연결 테스트 (문제 발생 시)
+```bash
+# Gemini 서버 단독 실행 테스트
+cd c:\workspace\wms\mcp-servers\gemini-server
+$env:GEMINI_API_KEY="실제_키"; node server.js
+# → "[gemini-mcp] Server started successfully" 출력되면 정상
+
+# OpenAI 서버 단독 실행 테스트
+cd c:\workspace\wms\mcp-servers\openai-server
+$env:OPENAI_API_KEY="실제_키"; node server.js
+# → "[openai-mcp] Server started successfully" 출력되면 정상
+
+# 전역 패키지 설치 확인
 where token-optimizer-mcp
+codex --version
 ```
+
+---
+
+## 현재 패키지 버전 (2026-06 기준)
+
+| 패키지 | 버전 | 위치 |
+|--------|------|------|
+| `@google/genai` | 2.7.0 | gemini-server |
+| `@modelcontextprotocol/sdk` | 1.29.0 | gemini-server, openai-server |
+| `openai` | 6.39.1 | openai-server |
+| `@openai/codex` CLI | 0.135.0 | 전역 |
+| `token-optimizer-mcp` | 2.17.0 | 전역 |
+| `@anthropic-ai/claude-code` | 2.1.159 | 전역 |
+
+> ⚠️ Gemini SDK `@google/generative-ai` (deprecated) → `@google/genai` 마이그레이션 완료 (2026-06)
+> ⚠️ MCP SDK `server.tool()` (deprecated) → `server.registerTool()` 마이그레이션 완료 (2026-06)
+
+---
+
+## 설정 파일 위치 (git 미포함 — PC마다 별도 설정)
+
+| 파일 | 위치 | 내용 |
+|------|------|------|
+| 사용자 MCP 등록 | `~/.claude.json` | MCP 서버 4단계 등록 결과 저장 |
+| Claude 사용자 설정 | `~/.claude/settings.json` | 테마, 전역 설정 |
+| Codex CLI 인증 | `~/.codex/auth.json` | OpenAI API 키 인증 정보 |
+
+> ⚠️ 위 파일들은 git에 포함되지 않아 새 PC마다 4단계 절차 필요
 
 ---
 
@@ -102,42 +151,18 @@ where token-optimizer-mcp
 
 ### 연동 방식
 
-| MCP 서버 | 타입 | 실행 방식 | 절감 효과 | 상태 |
-|----------|------|-----------|-----------|------|
-| `gemini-research` | stdio | `node mcp-servers/gemini-server/server.js` | - | ✅ 활성 |
-| `openai-coding` | stdio | `node mcp-servers/openai-server/server.js` | - | ✅ 활성 |
-| `codex` | stdio | `npx codex-mcp-server` (Codex CLI 래퍼) | - | ✅ 활성 |
-| `token-optimizer` | stdio | `token-optimizer-mcp` (전역 설치) | 60~95% | ✅ 활성 |
-
-### 설정 파일 위치
-- **MCP 등록**: `.mcp.json` (각 프로젝트 루트 — VSCode에서 해당 폴더를 열어야 로드됨)
-- **Codex CLI 인증**: `~/.codex/auth.json`
-- **MCP 서버 소스**: `mcp-servers/gemini-server/`, `mcp-servers/openai-server/`
-
-> ⚠️ `.mcp.json`은 VSCode에서 **해당 폴더를 직접 열었을 때**만 로드됨
-> - `c:\workspace` 열면 → `.mcp.json` 미로드
-> - `c:\workspace\wms` 열면 → `.mcp.json` 정상 로드
-
-### 적용 프로젝트
-| 프로젝트 | 경로 | .mcp.json | 비고 |
+| MCP 서버 | 타입 | 실행 방식 | 상태 |
 |----------|------|-----------|------|
-| WMS (백엔드) | `c:\workspace\wms` | ✅ 있음 | Kotlin + Spring Boot |
-| WMS View (프론트) | `c:\workspace\wms_view` | ✅ 있음 | React 19 + Vite 8 |
-
-### token-optimizer-mcp
-- **패키지**: `token-optimizer-mcp` (npm 전역 설치)
-- **버전**: 2.17.0
-- **동작**: 매 툴 호출 시 Brotli 압축 + SQLite 캐싱으로 자동 최적화
-- **GitHub**: https://github.com/ooples/token-optimizer-mcp
-
-### openai/codex-plugin-cc 플러그인
-- **현재 상태**: 현재 Claude Code 버전에서 `/plugin` 명령 미지원 → `codex-mcp-server`(npx)로 대체 운영 중
-- **대체 패키지**: `tuannvm/codex-mcp-server` (Codex CLI MCP 래퍼)
+| `gemini-research` | stdio | `node mcp-servers/gemini-server/server.js` | ✅ 활성 |
+| `openai-coding` | stdio | `node mcp-servers/openai-server/server.js` | ✅ 활성 |
+| `codex` | stdio | `npx codex-mcp-server` (Codex CLI 래퍼) | ✅ 활성 |
+| `token-optimizer` | stdio | `token-optimizer-mcp` (전역 설치) | ✅ 활성 |
+| `postgres` | stdio | `npx @modelcontextprotocol/server-postgres` | ✅ 활성 |
 
 ### API 키 관리
-- `GEMINI_API_KEY` — `.mcp.json` env에 직접 설정 (Google AI Studio 발급)
-- `OPENAI_API_KEY` — `.mcp.json` env에 직접 설정 (OpenAI Platform 발급)
-- Codex CLI 인증 — `codex login --with-api-key` 로 `~/.codex/auth.json` 에 저장됨
+- `GEMINI_API_KEY` — `claude mcp add` 시 `-e` 옵션으로 등록 (Google AI Studio 발급)
+- `OPENAI_API_KEY` — `claude mcp add` 시 `-e` 옵션으로 등록 (OpenAI Platform 발급)
+- Codex CLI 인증 — `codex login --with-api-key` 로 `~/.codex/auth.json` 에 저장
 
 ---
 

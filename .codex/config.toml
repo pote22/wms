@@ -1,0 +1,23 @@
+[mcp_servers.codex]
+command = "npx"
+args = ["codex-mcp-server"]
+
+[mcp_servers.codex.env]
+OPENAI_API_KEY = ""
+
+[mcp_servers.gemini-research]
+command = "node"
+args = ["mcp-servers/gemini-server/server.js"]
+
+[mcp_servers.gemini-research.env]
+GEMINI_API_KEY = ""
+
+[mcp_servers.openai-coding]
+command = "node"
+args = ["mcp-servers/openai-server/server.js"]
+
+[mcp_servers.openai-coding.env]
+OPENAI_API_KEY = ""
+
+[mcp_servers.token-optimizer]
+command = "token-optimizer-mcp"
