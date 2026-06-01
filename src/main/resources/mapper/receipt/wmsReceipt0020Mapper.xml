@@ -5,7 +5,8 @@
 <mapper namespace="com.cjlogistics.wms.receipt.mapper.WmsReceipt0020Mapper">
     <!-- 입고예정 리스트 조회 -->
     <select id="selectReceiptList" parameterType="map" resultType="map">
-        SELECT H.SRVC_CD                                                                                                -- 고객사
+        SELECT '0'                                                                              AS CHK
+             , H.SRVC_CD                                                                                                -- 고객사
              , H.WH_CD                                                                                                  -- 센터
              , H.IN_NO                                                                                                  -- 입고번호
              , TO_CHAR(TO_DATE(H.IN_EXPECTED_DATE, 'YYYYMMDD'), 'YYYY-MM-DD')                   AS IN_EXPECTED_DATE     -- 입고예정일
