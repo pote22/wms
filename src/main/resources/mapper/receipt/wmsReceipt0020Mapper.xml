@@ -39,9 +39,9 @@
              , COALESCE(NULLIF(D.PDA_YN, 'N'), 'N')                                             AS PDA_YN               -- PDA사용여부
              , D.RMK                                                                                                    -- 비고
              , COALESCE(NULLIF(WMS.FN_GET_USER_NM(D.REG_ID),''),'')                             AS REG_ID               -- 등록자
-             , TO_CHAR(D.REG_DATE,'YYYY-MM-DD')                                                 AS REG_DATE             -- 등록일자
+             , TO_CHAR(D.REG_DATE,'YYYY-MM-DD HH24:MI:SS')                                      AS REG_DATE             -- 등록일자
              , COALESCE(NULLIF(WMS.FN_GET_USER_NM(D.UPD_ID),''),'')                             AS UPD_ID               -- 수정자
-             , TO_CHAR(D.UPD_DATE,'YYYY-MM-DD')                                                 AS UPD_DATE             -- 수정일자
+             , TO_CHAR(D.UPD_DATE,'YYYY-MM-DD HH24:MI:SS')                                      AS UPD_DATE             -- 수정일자
           FROM WMS.TB_RECEIPT_H H
              , WMS.TB_RECEIPT_D D
          WHERE H.SRVC_CD            = D.SRVC_CD 
@@ -68,7 +68,7 @@
            AND H.IN_EXPECTED_DATE   <![CDATA[<=]]> #{ endDate }
            </if>
            <if test="dateType == '09' and strDate != null and strDate != ''">
-           AND TO_CHAR(H.RECEIPT_DATE, 'YYYYMMDD') <![CDATA[>=]]> #{ strDate }
+           AND TO_CHAR(H.RECEIPT_DATE, 'YYYYMMDD HH24:MM') <![CDATA[>=]]> #{ strDate }
            </if>
            <if test="dateType == '09' and endDate != null and endDate != ''">
            AND TO_CHAR(H.RECEIPT_DATE, 'YYYYMMDD') <![CDATA[<=]]> #{ endDate }
