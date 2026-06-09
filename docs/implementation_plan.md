@@ -19,6 +19,10 @@
 | Phase 13 | 존&로케이션 관리 기능 구현 (WMS_MASTER_0040) | ✅ 완료 |
 | Phase 14 | 거래처관리 기능 구현 (WMS_MASTER_0020) | ✅ 완료 |
 | Phase 15 | 입고등록 백엔드 구현 (WMS_RECEIPT_0010) | ✅ 완료 |
+| Phase 16 | 입고예정/확정 백엔드 구현 (WMS_RECEIPT_0020) | ✅ 완료 |
+| Phase 17 | 입고확정 트리거 구현 (WMS_TRIGGER.sql) | ✅ 완료 |
+| Phase 18 | 재고현황 백엔드 구현 (WMS_STOCK_0010) | 🔲 미완료 |
+| Phase 19 | 트랜잭션관리 백엔드 구현 (WMS_STOCK_0090) | 🔲 미완료 |
 
 > 완료된 Phase 상세 → [`docs/history/backend_phases.md`](history/backend_phases.md)
 
@@ -236,6 +240,79 @@ SELECT '0' AS CHK, SRVC_CD, WH_CD, ZONE_CD
 #### 백엔드 공통 수정 사항
 - `commonCodeMapper.xml` — `selectCommonCodeList` 파라미터 `#{sysGrpCd}` → `#{sys_grp_cd}` (프론트 snake_case 요청 대응)
 - `WmsMaster0010Service.kt` — `selectCommonCodeCheck` 호출 파라미터 camelCase 유지 (`mapOf("sysGrpCd" to ...)`)
+
+---
+
+## Phase 17 — 입고확정 트리거 구현 (WMS_TRIGGER.sql) ✅
+
+### 신규 파일
+- `src/main/resources/WMS_TRIGGER.sql`
+
+### 구현 내용
+
+#### 시퀀스
+- `wms.seq_itrn_key` — TB_ITRN ITRN_KEY 채번용 (YYYYMMDD + 9자리)
+
+#### 트리거 함수 (`wms.fn_receipt_confirm_trigger`)
+- 발동 조건: `OLD.EXPECTED_QTY IS DISTINCT FROM NEW.EXPECTED_QTY AND NEW.STATUS = '09'`
+- Step 1 — TB_STOCK_H UPSERT: 로케이션 재고 수량 증가 (PK: LOC_ID, ZONE_CD, WH_CD, SRVC_CD)
+- Step 2 — TB_STOCK_D UPSERT: LOT별 재고 상세 수량 증가 (PK: ZONE_CD, LOC_ID, SRVC_CD, WH_CD)
+- Step 3 — TB_ITRN INSERT: 입고 트랜잭션 이력 적재 (TRAN_TYPE='DP', SOURCE_KEY=IN_NO)
+- Step 4 — TB_RECEIPT_H STATUS 갱신: 전체 완료 시 '09', 부분 완료 시 '01' + RECEIVED_QTY 합산
+
+#### 트리거 등록
+- `trg_receipt_confirm` AFTER UPDATE ON wms.TB_RECEIPT_D FOR EACH ROW
+
+---
+
+## Phase 16 — 입고예정/확정 백엔드 구현 (WMS_RECEIPT_0020) ✅
+
+### 신규 파일
+
+#### `WmsReceipt0020Controller.kt`
+- `@RequestMapping("/api/receipt/0020")`
+- `POST /getList` — 입고예정 목록 조회
+- `POST /saveRemarkInfo` — 비고 저장
+- `POST /saveReceiptConfirm` — 입고확정 처리
+
+#### `WmsReceipt0020Service.kt`
+| 메서드 | 설명 |
+|--------|------|
+| `getList` | TB_RECEIPT_H+D JOIN 조회 (다중 동적 조건) |
+| `saveRemarkInfo` | TB_RECEIPT_D RMK 다건 UPDATE |
+| `saveReceiptConfirm` | TB_RECEIPT_D STATUS→'09' + EXPECTED_QTY/RECEIVED_QTY UPDATE (트리거 발동) |
+
+#### `WmsReceipt0020Mapper.kt` / `wmsReceipt0020Mapper.xml`
+| 쿼리 ID | 설명 |
+|---------|------|
+| `selectReceiptList` | TB_RECEIPT_H+D JOIN, FN_GET_PROD_NM/FN_GET_ZONE_NM/FN_GET_USER_NM 함수 사용 |
+| `updateReceiptRmkInfo` | RMK, UPD_ID, UPD_DATE UPDATE |
+| `updateReceiptConfirmInfo` | STATUS='09', EXPECTED_QTY, RECEIVED_QTY, NOT_RSN_CD, RECEIPT_DATE UPDATE (STATUS='00' 조건) |
+
+### 버그 수정
+- `WmsReceipt0010Service.kt` `saveReceiptList` — `@Transactional` 누락 추가
+- `TB_RECEIPT_H.REG_DATE` 타입 DATE → TIMESTAMP 변경 (시간 누락 문제)
+- `application.yml` HikariCP `connection-init-sql` — `SET TIME ZONE 'Asia/Seoul'` 추가 (UTC→KST)
+
+---
+
+## Phase 18 — 재고현황 백엔드 구현 (WMS_STOCK_0010) 🔲
+
+### 작업 예정
+- `WmsStock0010Controller.kt` — `@RequestMapping("/api/stock/0010")`
+- `WmsStock0010Service.kt`
+- `WmsStock0010Mapper.kt` / `wmsStock0010Mapper.xml`
+- 조회: TB_STOCK_H + TB_STOCK_D JOIN, 고객사·센터·품목·존·로케이션 조건
+
+---
+
+## Phase 19 — 트랜잭션관리 백엔드 구현 (WMS_STOCK_0090) 🔲
+
+### 작업 예정
+- `WmsStock0090Controller.kt` — `@RequestMapping("/api/stock/0090")`
+- `WmsStock0090Service.kt`
+- `WmsStock0090Mapper.kt` / `wmsStock0090Mapper.xml`
+- 조회: TB_ITRN, 고객사·센터·TRAN_TYPE·기간·품목 조건
 
 ---
 
