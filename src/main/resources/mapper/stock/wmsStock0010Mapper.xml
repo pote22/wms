@@ -16,39 +16,57 @@
              , PICK_QTY																	-- 피킹수량
              , COALESCE((STOCK_QTY - (ALLOC_QTY + PICK_QTY)), 0) AS AVL_QTY				-- 가용수량
              , LOT_NO																	-- LOT번호
+             , ID																		-- 바코드ID
+             , AGING                                                                    -- 보관일수
+             , PROD_SPEC                                                                -- 사양
              , RMK																		-- 비고
              , REG_ID																	-- 등록자
              , REG_DATE																	-- 등록일자
              , UPD_ID 																	-- 수정자
              , UPD_DATE																	-- 수정일자
           FROM (
-                
-                    SELECT SRVC_CD
-                         , WH_CD
-                         , PROD_CD
-                         , COALESCE(WMS.FN_GET_PROD_NM(SRVC_CD, WH_CD, PROD_CD), '') 	AS PROD_NM
-                         , ZONE_CD
-                         , COALESCE(WMS.FN_GET_ZONE_NM(SRVC_CD, WH_CD, ZONE_CD), '') 	AS ZONE_NM
-                         , LOC_CD
-                         , COALESCE(STOCK_QTY, 0) AS STOCK_QTY
-                         , COALESCE(ALLOC_QTY, 0) AS ALLOC_QTY 
-                         , COALESCE(PICK_QTY, 0) AS PICK_QTY
-                         , TO_CHAR(TO_DATE(LOT_NO, 'YYYYMMDD'), 'YYYY-MM-DD') 			AS LOT_NO
-                         , PLT_ID AS ID
-                         , RMK 
-                         , COALESCE(NULLIF(WMS.FN_GET_USER_NM(REG_ID),''),'')           AS REG_ID  
-                         , TO_CHAR(REG_DATE,'YYYY-MM-DD HH24:MI:SS')                    AS REG_DATE
-                         , COALESCE(NULLIF(WMS.FN_GET_USER_NM(UPD_ID),''),'')           AS UPD_ID 
-                         , TO_CHAR(UPD_DATE,'YYYY-MM-DD HH24:MI:SS')                    AS UPD_DATE
-                      FROM WMS.TB_STOCK_D
-                     WHERE 1=1
-                       AND SRVC_CD  = #{srvcCd}
-                       AND WH_CD    = #{whCd}
-                       <if test="vendorCd != null and vendorCd != ''">
-                       AND PROD_CD  = #{prodCd}
+                    SELECT D.SRVC_CD
+                         , D.WH_CD
+                         , D.PROD_CD
+                         , COALESCE(WMS.FN_GET_PROD_NM(D.SRVC_CD, D.WH_CD, D.PROD_CD), '') 	AS PROD_NM
+                         , D.ZONE_CD
+                         , COALESCE(WMS.FN_GET_ZONE_NM(SRVC_CD, WH_CD, ZONE_CD), '') 	    AS ZONE_NM
+                         , D.LOC_CD
+                         , COALESCE(D.STOCK_QTY, 0) AS STOCK_QTY
+                         , COALESCE(D.ALLOC_QTY, 0) AS ALLOC_QTY 
+                         , COALESCE(D.PICK_QTY, 0) AS PICK_QTY
+                         , TO_CHAR(TO_DATE(D.LOT_NO, 'YYYYMMDD'), 'YYYY-MM-DD') 			AS LOT_NO
+                         , D.PLT_ID AS ID
+                         , CURRENT_DATE - TO_DATE(D.LOT_NO, 'YYYYMMDD') 					AS AGING
+                         , ''                                                               AS PROD_SPEC
+                         , D.RMK 
+                         , COALESCE(NULLIF(WMS.FN_GET_USER_NM(D.REG_ID),''),'')             AS REG_ID  
+                         , TO_CHAR(D.REG_DATE,'YYYY-MM-DD HH24:MI:SS')                      AS REG_DATE
+                         , COALESCE(NULLIF(WMS.FN_GET_USER_NM(D.UPD_ID),''),'')             AS UPD_ID 
+                         , TO_CHAR(D.UPD_DATE,'YYYY-MM-DD HH24:MI:SS')                      AS UPD_DATE
+                      FROM WMS.TB_STOCK_D D
+                     WHERE 1 = 1
+                       AND D.SRVC_CD = #{srvcCd}
+                       AND D.WH_CD = #{whCd}
+                       <if test="barcode != null and barcode != ''">
+                       AND D.PLT_ID LIKE '%' || #{barcode} || '%'
                        </if>
-                       <if test="" 
+                       <if test="lotNo != null and lotNo != ''">
+                       AND D.LOT_NO = #{lotNo}
+                       </if>
+                       <if test="rmk != null and rmk != ''">
+                       AND D.RMK LIKE '%' || #{rmk} || '%'
+                       </if>
+                       <if test="zoneCd != null and zoneCd != ''">
+                       AND D.ZONE_CD = #{zoneCd}
+                       </if>
+                       <if test="locCd != null and locCd != ''">
+                       AND D.LOC_CD = #{locCd}
+                       </if>
+                       <if test="prodCd != null and prodCd != ''">
+                       AND D.PROD_CD = #{prodCd}
+                       </if>
                )
-        ORDER BY SRVC_CD, WH_CD, PROD_CD, ZONE_CD, LOC_CD, LOT_NO
+         ORDER BY SRVC_CD, WH_CD, PROD_CD, ZONE_CD, LOC_CD, LOT_NO
     </select>
 </mapper>
