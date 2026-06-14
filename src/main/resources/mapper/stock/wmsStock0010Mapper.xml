@@ -4,40 +4,40 @@
           
 <mapper namespace="com.cjlogistics.wms.stock.mapper.WmsStock0010Mapper">
     <select id="selectStockList" parameterType="map" resultType="map">
-        SELECT SRVC_CD																	-- 고객사
-             , WH_CD																	-- 센터
-             , PROD_CD																	-- 품목코드
-             , PROD_NM																	-- 품목명
-             , ZONE_CD																	-- 존코드
-             , ZONE_NM																	-- 존명
-             , LOC_CD																	-- 로케이션
-             , STOCK_QTY																-- 보관수량
-             , ALLOC_QTY																-- 할당수량
-             , PICK_QTY																	-- 피킹수량
-             , COALESCE((STOCK_QTY - (ALLOC_QTY + PICK_QTY)), 0) AS AVL_QTY				-- 가용수량
-             , LOT_NO																	-- LOT번호
-             , ID																		-- 바코드ID
-             , AGING                                                                    -- 보관일수
-             , PROD_SPEC                                                                -- 사양
-             , RMK																		-- 비고
-             , REG_ID																	-- 등록자
-             , REG_DATE																	-- 등록일자
-             , UPD_ID 																	-- 수정자
-             , UPD_DATE																	-- 수정일자
+        SELECT SRVC_CD																	                        -- 고객사
+             , WH_CD																	                          -- 센터
+             , PROD_CD																	                        -- 품목코드
+             , PROD_NM																	                        -- 품목명
+             , ZONE_CD																	                        -- 존코드
+             , ZONE_NM																	                        -- 존명
+             , LOC_CD																	                          -- 로케이션
+             , STOCK_QTY																                        -- 보관수량
+             , ALLOC_QTY																                        -- 할당수량
+             , PICK_QTY																	                        -- 피킹수량
+             , COALESCE((STOCK_QTY - (ALLOC_QTY + PICK_QTY)), 0) AS AVL_QTY     -- 가용수량
+             , LOT_NO																	                          -- LOT번호
+             , ID																		                            -- 바코드
+             , AGING                                                            -- 보관일수
+             , PROD_SPEC                                                        -- 사양
+             , RMK																		                          -- 비고
+             , REG_ID																	                          -- 등록자
+             , REG_DATE																	                        -- 등록일자
+             , UPD_ID 																	                        -- 수정자
+             , UPD_DATE																	                        -- 수정일자
           FROM (
                     SELECT D.SRVC_CD
                          , D.WH_CD
                          , D.PROD_CD
                          , COALESCE(WMS.FN_GET_PROD_NM(D.SRVC_CD, D.WH_CD, D.PROD_CD), '') 	AS PROD_NM
                          , D.ZONE_CD
-                         , COALESCE(WMS.FN_GET_ZONE_NM(SRVC_CD, WH_CD, ZONE_CD), '') 	    AS ZONE_NM
+                         , COALESCE(WMS.FN_GET_ZONE_NM(SRVC_CD, WH_CD, ZONE_CD), '') 	      AS ZONE_NM
                          , D.LOC_CD
                          , COALESCE(D.STOCK_QTY, 0) AS STOCK_QTY
                          , COALESCE(D.ALLOC_QTY, 0) AS ALLOC_QTY 
                          , COALESCE(D.PICK_QTY, 0) AS PICK_QTY
-                         , TO_CHAR(TO_DATE(D.LOT_NO, 'YYYYMMDD'), 'YYYY-MM-DD') 			AS LOT_NO
+                         , TO_CHAR(TO_DATE(D.LOT_NO, 'YYYYMMDD'), 'YYYY-MM-DD') 			      AS LOT_NO
                          , D.PLT_ID AS ID
-                         , CURRENT_DATE - TO_DATE(D.LOT_NO, 'YYYYMMDD') 					AS AGING
+                         , CURRENT_DATE - TO_DATE(D.LOT_NO, 'YYYYMMDD') 					          AS AGING
                          , ''                                                               AS PROD_SPEC
                          , D.RMK 
                          , COALESCE(NULLIF(WMS.FN_GET_USER_NM(D.REG_ID),''),'')             AS REG_ID  
