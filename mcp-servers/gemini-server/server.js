@@ -11,6 +11,9 @@ if (!GEMINI_API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
+// NOTE: Google Search grounding (tools: [{ googleSearch: {} }]) requires a
+// billing-enabled API key — it returns 429 RESOURCE_EXHAUSTED on the free tier
+// (verified 2026-06-27). Re-add the `config.tools` block below if billing is enabled.
 async function generate(prompt) {
   const response = await ai.models.generateContent({
     model: "gemini-3.5-flash",
