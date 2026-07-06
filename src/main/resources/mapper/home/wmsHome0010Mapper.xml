@@ -5,20 +5,20 @@
   <mapper namespace="com.cjlogistics.wms.home.mapper.WmsHome0010Mapper">
     <!-- 공지사항 조회 -->
     <select id = "selectList" parameterType="map" resultType="map">
-        SELECT BOARD_ID												-- 게시판ID
-            , TITLE												    -- 제목
-            , CONTENT												-- 상세내용
-            , COALESCE(NULLIF(VW_CNT, 0), 0) AS VW_CNT				-- 조회수
-            , BOARD_TYPE											-- 게시판유형
-            , USER_ID												-- 작성자
-            , REG_ID												-- 등록자
-            , TO_CHAR(REG_DATE, 'YYYY-MM-DD') AS REG_DATE			-- 등록일자
-            , UPD_ID												-- 수정자
-            , TO_CHAR(UPD_DATE, 'YYYY-MM-DD') AS UPD_DATE			-- 수정일자
-        FROM TB_BOARD
-        WHERE 1 = 1
-        AND USE_YN = 'Y'
-        ORDER BY BOARD_ID DESC, REG_DATE DESC
+        SELECT BOARD_ID												                -- 게시판ID
+             , TITLE												                    -- 제목
+             , CONTENT												                  -- 상세내용
+             , COALESCE(NULLIF(VW_CNT, 0), 0) AS VW_CNT				-- 조회수
+             , BOARD_TYPE											                -- 게시판유형
+             , USER_ID												                  -- 작성자
+             , REG_ID												                  -- 등록자
+             , TO_CHAR(REG_DATE, 'YYYY-MM-DD') AS REG_DATE			-- 등록일자
+             , UPD_ID												                  -- 수정자
+             , TO_CHAR(UPD_DATE, 'YYYY-MM-DD') AS UPD_DATE			-- 수정일자
+          FROM WMS.TB_BOARD
+         WHERE 1 = 1
+           AND USE_YN = 'Y'
+         ORDER BY BOARD_ID DESC, REG_DATE DESC
     </select>
 
     <!-- 게시판ID 채번 -->
@@ -28,7 +28,7 @@
 
     <!-- 공지상세내용 저장&수정-->
     <insert id = "saveNotice" parameterType="map">
-        MERGE INTO TB_BOARD AS T
+        MERGE INTO WMS.TB_BOARD AS T
         USING ( 
             SELECT #{boardId}::INTEGER AS BOARD_ID
                  , #{title}            AS TITLE
@@ -61,9 +61,9 @@
               , NOW())
     </insert>
 
-    <!-- 공지사항 삭제 -->
+    <!-- 공지사항 삭제(사용 : 'N' 변경) -->
     <update id="deleteNotice" parameterType="map">
-        UPDATE TB_BOARD
+        UPDATE WMS.TB_BOARD
            SET USE_YN = 'N'
              , UPD_ID = #{userId}
              , UPD_DATE = NOW()
@@ -80,7 +80,7 @@
              , FILE_NM
              , FILE_SIZE
              , FILE_PATH
-          FROM TB_COMM_BOARD_FILE
+          FROM WMS.TB_COMM_BOARD_FILE
          WHERE 1 = 1
            AND BOARD_ID = #{ boardId }
          ORDER BY FILE_ID 
@@ -93,14 +93,14 @@
              , FILE_NM
              , FILE_SIZE
              , FILE_PATH
-          FROM TB_COMM_BOARD_FILE
+          FROM WMS.TB_COMM_BOARD_FILE
          WHERE 1 = 1
            AND FILE_ID = #{ fileId }  
     </select>
 
     <!-- 파일 저장 -->
     <insert id="insertFile" parameterType="map">
-        INSERT INTO TB_COMM_BOARD_FILE (
+        INSERT INTO WMS.TB_COMM_BOARD_FILE (
              FILE_ID
            , BOARD_ID
            , REF_TYPE
@@ -121,10 +121,21 @@
         )
     </insert>
 
+    <!-- 첨부 파일 정보 조회 -->
+    <select id = "selectFileListByBoardId" parameterType="map" resultType="map">
+        SELECT FILE_ID
+             , FILE_PATH
+          FROM WMS.TB_COMM_BOARD_FILE
+         WHERE BOARD_ID IN
+         <foreach item="boardId" collection="boardIds" open="(" separator="," close=")">
+            #{boardId}
+         </foreach>
+    </select>
+
     <!-- 파일 삭제 -->
     <delete id="deleteFile" parameterType="map">
         DELETE 
-          FROM TB_COMM_BOARD_FILE
+          FROM WMS.TB_COMM_BOARD_FILE
          WHERE 1 = 1
            AND FILE_ID = #{fileId}
     </delete>

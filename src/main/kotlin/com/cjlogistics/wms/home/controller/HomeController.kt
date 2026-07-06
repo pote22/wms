@@ -23,8 +23,8 @@ import org.springframework.web.multipart.MultipartFile
 @RestController
 @RequestMapping("/api/home")
 class HomeController(
-    private val wmsHome0010Service: WmsHome0010Service,
-    private val wmsHome0010FileService: WmsHome0010FileService,
+    private val wmsHome0010Service      : WmsHome0010Service,
+    private val wmsHome0010FileService  : WmsHome0010FileService
 ) {
 
     private val LOG = LoggerFactory.getLogger(HomeController::class.java)
@@ -39,16 +39,15 @@ class HomeController(
             ResponseEntity.ok(response)
         } catch (e: Exception) {
             LOG.error("getList error : ${e.message}", e)
-            ResponseEntity.status(500)
-                    .body(
-                            Response(
-                                    resultCode = "9999",
-                                    resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
-                                    accessToken = "",
-                                    expireDate = null,
-                                    data = null
-                            )
-                    )
+            ResponseEntity.status(500).body(
+                Response(
+                    resultCode      = "9999",
+                    resultMessage   = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                    accessToken     = "",
+                    expireDate      = null,
+                    data            = null
+                )
+            )
         }
     }
 
@@ -62,16 +61,47 @@ class HomeController(
             ResponseEntity.ok(response)
         } catch (e: Exception) {
             LOG.error("saveList error : ${e.message}", e)
-            ResponseEntity.status(500)
-                    .body(
-                            Response(
-                                    resultCode = "9999",
-                                    resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
-                                    accessToken = "",
-                                    expireDate = null,
-                                    data = null
-                            )
-                    )
+            ResponseEntity.status(500).body(
+                Response(
+                    resultCode      = "9999",
+                    resultMessage   = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                    accessToken     = "",
+                    expireDate      = null,
+                    data            = null
+                )
+            )
+        }
+    }
+
+    /** 공지사항 내용 삭제 */
+    @PostMapping("/deleteList")
+    fun deleteList(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
+        LOG.info("---> DELETE_LIST Controller 호출")
+
+        return try {
+            var response = wmsHome0010Service.deleteList(paramMap)
+            ResponseEntity.ok(response)
+        } catch (ie: IllegalArgumentException) {
+            ResponseEntity.status(400).body(
+                Response(
+                    resultCode      = "0001",
+                    resultMessage   = ie.message,
+                    accessToken     = "",
+                    expireDate      = null,
+                    data            = null
+                )
+            )
+        } catch (e: Exception) {
+            LOG.error("deleteList error : ${e.message}", e)
+            ResponseEntity.status(500).body(
+                Response(
+                    resultCode      = "9999",
+                    resultMessage   = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                    accessToken     = "",
+                    expireDate      = null,
+                    data            = null
+                )
+            )
         }
     }
 
@@ -79,11 +109,20 @@ class HomeController(
     @PostMapping("/getFileList")
     fun getFileList(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
         LOG.info("---> GET_FILE_LIST Controller 호출")
+
         return try {
             ResponseEntity.ok(wmsHome0010FileService.getFileList(paramMap))
         } catch (e: Exception) {
             LOG.error("getFileList error : ${e.message}", e)
-            ResponseEntity.status(500).body(Response(resultCode = "9999", resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.", accessToken = "", expireDate = null, data = null))
+            ResponseEntity.status(500).body(
+                Response(
+                    resultCode      = "9999", 
+                    resultMessage   = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.", 
+                    accessToken     = "", 
+                    expireDate      = null, 
+                    data            = null
+                )
+            )
         }
     }
 
@@ -95,11 +134,20 @@ class HomeController(
         @RequestParam("files") files: List<MultipartFile>,
     ): ResponseEntity<Response> {
         LOG.info("---> UPLOAD_FILE Controller 호출")
+
         return try {
             ResponseEntity.ok(wmsHome0010FileService.uploadFile(boardId, userId, files))
         } catch (e: Exception) {
             LOG.error("uploadFile error : ${e.message}", e)
-            ResponseEntity.status(500).body(Response(resultCode = "9999", resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.", accessToken = "", expireDate = null, data = null))
+            ResponseEntity.status(500).body(
+                Response(
+                    resultCode      = "9999",
+                    resultMessage   = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                    accessToken     = "",
+                    expireDate      = null,
+                    data            = null
+                )
+            )
         }
     }
 
@@ -107,6 +155,7 @@ class HomeController(
     @GetMapping("/downloadFile/{fileId}")
     fun downloadFile(@PathVariable fileId: Int): ResponseEntity<ByteArray> {
         LOG.info("---> DOWNLOAD_FILE Controller 호출")
+
         return try {
             wmsHome0010FileService.downloadFile(fileId)
         } catch (ie: IllegalArgumentException) {
@@ -121,47 +170,30 @@ class HomeController(
     @PostMapping("/deleteFile")
     fun deleteFile(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
         LOG.info("---> DELETE_FILE Controller 호출")
+
         return try {
             ResponseEntity.ok(wmsHome0010FileService.deleteFile(paramMap))
         } catch (ie: IllegalArgumentException) {
-            ResponseEntity.status(400).body(Response(resultCode = "0001", resultMessage = ie.message, accessToken = "", expireDate = null, data = null))
+            ResponseEntity.status(400).body(
+                Response(
+                    resultCode      = "0001",
+                    resultMessage   = ie.message,
+                    accessToken     = "",
+                    expireDate      = null,
+                    data            = null
+                )
+            )
         } catch (e: Exception) {
             LOG.error("deleteFile error : ${e.message}", e)
-            ResponseEntity.status(500).body(Response(resultCode = "9999", resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.", accessToken = "", expireDate = null, data = null))
-        }
-    }
-
-    /** 공지사항 내용 삭제 */
-    @PostMapping("/deleteList")
-    fun deleteList(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
-        LOG.info("---> DELETE_LIST Controller 호출")
-
-        return try {
-            var response = wmsHome0010Service.deleteList(paramMap)
-            ResponseEntity.ok(response)
-        } catch (ie: IllegalArgumentException) {
-            ResponseEntity.status(400)
-                    .body(
-                            Response(
-                                    resultCode = "0001",
-                                    resultMessage = ie.message,
-                                    accessToken = "",
-                                    expireDate = null,
-                                    data = null
-                            )
-                    )
-        } catch (e: Exception) {
-            LOG.error("deleteList error : ${e.message}", e)
-            ResponseEntity.status(500)
-                    .body(
-                            Response(
-                                    resultCode = "9999",
-                                    resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
-                                    accessToken = "",
-                                    expireDate = null,
-                                    data = null
-                            )
-                    )
+            ResponseEntity.status(500).body(
+                Response(
+                    resultCode      = "9999",
+                    resultMessage   = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                    accessToken     = "",
+                    expireDate      = null,
+                    data            = null
+                )
+            )
         }
     }
 }
