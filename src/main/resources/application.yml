@@ -31,7 +31,7 @@ spring:
 ## 파일 업로드 설정
 file:
   storage : local
-  upload-path: c:/workspace/wms_view/uploads
+  upload-path: c:/Temp/uploads
 
 # MyBatis 설정
 mybatis:
@@ -52,7 +52,7 @@ logging:
 security:
   jwt:
     # JWT 서명에 사용할 비밀 키 (실제 운영에서는 안전하게 관리해야 함)
-    secret      : CJLOGISTICS_ACCESS_SECRET_TOKEN_KEY_2026_1234567890 
+    secret      : ${JWT_SECRET} 
     # JWT 발급자 정보 (예: 애플리케이션 이름)         
     issuer      : wms                                 
     # JWT 토큰의 유효 기간 (초 단위, 예: 3600초 = 1시간)                  
