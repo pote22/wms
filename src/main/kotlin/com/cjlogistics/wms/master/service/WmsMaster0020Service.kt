@@ -81,14 +81,14 @@ class WmsMaster0020Service (private val wmsMaster0020Mapper : WmsMaster0020Mappe
     /** 파라메터 값 유효 체크 */
     fun setCheckRows(list : List<Map<String, Any>>) : List<Map<String, Any>> {
         val nullRegx  = Regex("\\u0000")                                            // 널값정규식체크
-        val hpNoRegx  = Regex("^0\\d{1,2}-\\d{3,4}-\\d{4}$")                        // 휴대전화정규식체크
+        val hpNoRegx  = Regex("^0\\d{1,2}\\d{3,4}\\d{4}$")                        // 휴대전화정규식체크
         val emailRegx = Regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\$") // 이메일정규식체크
 
         return list.mapIndexed { idx, v ->
             val errors      = mutableListOf<String>()
             val clientCd        = v["clientCd"]?.toString()?.replace(nullRegx, "")?.trim() ?: ""
             val businessNo      = v["businessNo"]?.toString()?.replace(nullRegx, "")?.trim() ?: ""
-            val presidentHp     = v["presidentHp"]?.toString()?.replace(nullRegx, "")?.trim() ?: ""
+            val presidentHp     = v["presidentHp"]?.toString()?.replace(nullRegx, "")?.replace("-", "")?.trim() ?: ""
             var presidentEmail  = v["presidentEmail"]?.toString()?.replace(nullRegx, "")?.trim() ?: ""
 
             if (clientCd.isEmpty()) {
