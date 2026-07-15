@@ -18,7 +18,7 @@ class JwtProvider(private val jwtProperties: JwtProperties) {
     // JWT(Access Token) 토큰 생성
     fun generateToken(user: Map<String, Any?>): String {
         val now = Date()
-        val expiresDt = Date(now.time + jwtProperties.expirationSeconds * 1000)
+        val expiresDt = Date(now.time + jwtProperties.expiration * 1000)
 
         return Jwts.builder()
                 .setSubject(user["user_id"]?.toString() ?: "")
