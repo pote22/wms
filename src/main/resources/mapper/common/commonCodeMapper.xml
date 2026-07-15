@@ -9,27 +9,26 @@
              , SYS_CDNM
           FROM WMS.TB_COMM_CODE
          WHERE 1 = 1
-           AND SYS_GRP_CD = #{ sys_grp_cd }   -- 그룹 코드
-           <if test="srvc_cd != null and srvc_cd != ''">
-           AND SRVC_CD = #{ srvc_cd }
+           AND SYS_GRP_CD = #{ sysGrpCd }   -- 그룹 코드
+           <if test="srvcCd != null and srvcCd != ''">
+           AND SRVC_CD = #{ srvcCd }
            </if> 
-           <if test="sys_etc1 != null and sys_etc1 != ''">
-           AND SYS_ETC1 = #{ sys_etc1 }
+           <if test="sysEtc1 != null and sysEtc1 != ''">
+           AND SYS_ETC1 = #{ sysEtc1 }
            </if>
-           <if test="sys_etc2 != null and sys_etc2 != ''">
-           AND SYS_ETC2 = #{ sys_etc2 }
+           <if test="sysEtc2 != null and sysEtc2 != ''">
+           AND SYS_ETC2 = #{ sysEtc2 }
            </if>
-           <if test="sys_etc3 != null and sys_etc3 != ''">
-           AND SYS_ETC3 = #{ sys_etc3 }
+           <if test="sysEtc3 != null and sysEtc3 != ''">
+           AND SYS_ETC3 = #{ sysEtc3 }
            </if>
-           <if test="sys_etc4 != null and sys_etc4 != ''">
-           AND SYS_ETC4 = #{ sys_etc4 }
+           <if test="sysEtc4 != null and sysEtc4 != ''">
+           AND SYS_ETC4 = #{ sysEtc4 }
            </if>
-           <if test="sys_etc5 != null and sys_etc5 != ''">
-           AND SYS_ETC5 = #{ sys_etc5 }
+           <if test="sysEtc5 != null and sysEtc5 != ''">
+           AND SYS_ETC5 = #{ sysEtc5 }
            </if>
            AND USE_YN     = 'Y'
-
          ORDER BY SYS_SORT_SEQ, SYS_CD
     </select>
 
@@ -38,8 +37,8 @@
         SELECT SYS_CD
           FROM WMS.TB_COMM_CODE
          WHERE 1 = 1
-           AND SYS_GRP_CD = #{ sys_grp_cd }   -- 그룹 코드
-           AND SYS_CD     = #{ sys_cd }      -- 공통 코드
+           AND SYS_GRP_CD = #{ sysGrpCd }   -- 그룹 코드
+           AND SYS_CD     = #{ sysCd }      -- 공통 코드
            AND USE_YN     = 'Y'             -- 사용여부 : Y (사용중인 코드 대상으로 검색)
     </select>
 
@@ -122,6 +121,7 @@
     <select id="selectProdSearchList" parameterType="map" resultType="map">
         SELECT PROD_CD
              , PROD_NM
+             , USE_YN
           FROM WMS.TB_ITEM
          WHERE 1 = 1
            AND SRVC_CD = #{srvcCd}
@@ -129,7 +129,9 @@
            <if test="prodCd != null and prodCd != ''">
            AND PROD_CD LIKE '%' || #{prodCd} || '%'
            </if>
-           AND USE_YN  = 'Y'
+           <if test="useYn != null and useYn != ''">
+           AND USE_YN = #{useYn}
+           </if>
          ORDER BY PROD_CD
     </select>
 
