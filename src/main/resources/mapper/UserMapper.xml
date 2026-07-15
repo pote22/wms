@@ -22,10 +22,10 @@
     <!-- 사용자 고객사&센터 목록 조회 -->
     <select id="selectUserAuthWhList" parameterType="map" resultType="map">
         SELECT SRVC_CD
-             , COALESCE(NULLIF(FN_GET_SRVC_NM(SRVC_CD), ''), '') AS SRVC_NM
+             , COALESCE(NULLIF(WMS.FN_GET_SRVC_NM(SRVC_CD), ''), '') AS SRVC_NM
              , WH_CD
-             , COALESCE(NULLIF(FN_GET_WH_NM(SRVC_CD, WH_CD), ''), '') AS WH_NM
-             , BASE_YN
+             , COALESCE(NULLIF(WMS.FN_GET_WH_NM(SRVC_CD, WH_CD), ''), '') AS WH_NM
+             , COALESCE(NULLIF(BASE_YN, ''), '') AS BASE_YN
           FROM WMS.TB_USER_AUTH
          WHERE 1 = 1
            AND USER_ID = #{userId}
