@@ -42,17 +42,37 @@ class WmsMaster0040Service(private val wmsMaster0040Mapper : WmsMaster0040Mapper
         var zoneList    = paramMap["zoneList"]  as? List<Map<String, Any>> ?: emptyList();
         var locList     = paramMap["locList"]   as? List<Map<String, Any>> ?: emptyList();
         
+        fun extractMessage(throwable: Throwable, defaultMessage: String): String {
+            var current: Throwable? = throwable
+            while (current != null) {
+                val message = current.message?.trim()
+                if (!message.isNullOrEmpty()) {
+                    return message
+                }
+                current = current.cause
+            }
+            return defaultMessage
+        }
+        
         if (zoneList.isEmpty() && locList.isEmpty()) {
             throw IllegalArgumentException("저장할 데이터가 없습니다.")
         }
 
         // 존&로케이션 정보 저장
         zoneList.forEach { v ->
-            wmsMaster0040Mapper.mergeZoneInfo(v)            
+            try {
+                wmsMaster0040Mapper.mergeZoneInfo(v)
+            } catch (e: Exception) {
+                throw IllegalArgumentException(extractMessage(e, "존 정보 저장 중 오류가 발생했습니다."))
+            }
         }
 
         locList.forEach { v ->
-            wmsMaster0040Mapper.mergeLocInfo(v)
+            try {
+                wmsMaster0040Mapper.mergeLocInfo(v)
+            } catch (e: Exception) {
+                throw IllegalArgumentException(extractMessage(e, "로케이션 정보 저장 중 오류가 발생했습니다."))
+            }
         }
         
         return Response (
