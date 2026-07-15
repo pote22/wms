@@ -23,6 +23,7 @@
                      , WEIGHT                                                           -- 중량
                      , REAL_WEIGHT                                                      -- 실중량
                      , WEIGHT_UNIT                                                      -- 중량단위
+                     , PROD_SPEC                                                        -- 품목사양
                      , COALESCE(NULLIF(WMS.FN_GET_USER_NM(REG_ID), ''), '') AS REG_ID   -- 등록자
                      , TO_CHAR(REG_DATE, 'YYYY-MM-DD') AS REG_DATE                      -- 등록일자
                      , COALESCE(NULLIF(WMS.FN_GET_USER_NM(UPD_ID), ''), '') AS UPD_ID   -- 수정자
@@ -66,6 +67,7 @@
                         , #{weight}          AS WEIGHT
                         , #{realWeight}      AS REAL_WEIGHT
                         , #{weightUnit}      AS WEIGHT_UNIT
+                        , #{prodSpec}        AS PROD_SPEC
                         , #{userId}          AS USER_ID
                 ) AS S ON (T.SRVC_CD = S.SRVC_CD 
                        AND T.WH_CD   = S.WH_CD
@@ -84,6 +86,7 @@
                              , WEIGHT        = #{weight}
                              , REAL_WEIGHT   = #{realWeight}
                              , WEIGHT_UNIT   = #{weightUnit}
+                             , PROD_SPEC     = #{prodSpec}
                              , UPD_ID        = #{userId}
                              , UPD_DATE      = NOW()
                 WHEN NOT MATCHED THEN
@@ -105,6 +108,7 @@
                         , WEIGHT
                         , REAL_WEIGHT
                         , WEIGHT_UNIT
+                        , PROD_SPEC
                         , REG_ID
                         , REG_DATE
                       ) VALUES (
@@ -125,6 +129,7 @@
                         , #{weight}
                         , #{realWeight}
                         , #{weightUnit}
+                        , #{prodSpec}
                         , #{userId}
                         , NOW()
                       )        
