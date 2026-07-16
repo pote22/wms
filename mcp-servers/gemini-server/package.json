@@ -11,5 +11,9 @@
     "@google/genai": "^2.7.0",
     "@google/generative-ai": "^0.24.1",
     "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "allowScripts": {
+    "@google/genai@2.8.0": true,
+    "protobufjs@7.6.3": true
   }
 }
