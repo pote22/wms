@@ -123,23 +123,23 @@ claude mcp list
 
 ---
 
-## 현재 패키지 버전 (2026-06-10 기준)
+## 현재 패키지 버전 (2026-07-28 기준)
 
 | 패키지 | 버전 | 위치 |
 |--------|------|------|
-| `@google/genai` | 2.7.0 | gemini-server |
+| `@google/genai` | 2.8.0 | gemini-server |
 | Gemini 모델 | **gemini-3.5-flash** | gemini-server (`server.js` 내 model ID) |
 | `@modelcontextprotocol/sdk` | 1.29.0 | gemini-server, openai-server |
-| `openai` | 6.39.1 | openai-server |
+| `openai` | 6.42.0 | openai-server |
 | `@openai/codex` CLI | 0.142.2 | 전역 (MCP는 내장 `codex mcp-server` 사용) |
-| `@anthropic-ai/claude-code` | 2.1.159 | 전역 |
-| Claude Code 모델 | **claude-opus-4-8** | `~/.claude/settings.json` |
+| `@anthropic-ai/claude-code` | 2.1.173 | 전역 |
+| Claude Code 모델 | **claude-sonnet-4-6** | `~/.claude/settings.json` |
 
 > ⚠️ Gemini SDK `@google/generative-ai` (deprecated) → `@google/genai` 마이그레이션 완료 (2026-06)
 > ⚠️ MCP SDK `server.tool()` (deprecated) → `server.registerTool()` 마이그레이션 완료 (2026-06)
 > ⚠️ `token-optimizer-mcp` 보안 위험으로 **제거** (2026-06-10): 8일에 29개 버전 배포, 의심스러운 패키지
 > ✅ Gemini 모델 `gemini-2.5-flash` → `gemini-3.5-flash` 업그레이드 (2026-06-10)
-> ✅ Claude Code 모델 `claude-sonnet-4-6` → `claude-opus-4-8` 업그레이드 (2026-06-10, PRO 구독)
+> ✅ Claude Code 모델 `claude-opus-4-8` → `claude-sonnet-4-6` 다운그레이드 (2026-07-28, 토큰 비용 절감)
 
 ---
 
