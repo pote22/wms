@@ -38,4 +38,104 @@ class CommonController(private val commonService : CommonService) {
             )
         }
     }
+
+    /** 품목 검색 팝업 조회 */
+    @PostMapping("/getProdSearchList")
+    fun getProdSearchList(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
+        LOG.info("---> getProdSearchList : $paramMap")
+        return try {
+            ResponseEntity.ok(commonService.getProdSearchList(paramMap))
+        } catch (e: Exception) {
+            LOG.error("getProdSearchList error : ${e.message}")
+            ResponseEntity.status(500).body(
+                Response(
+                    resultCode    = "9999",
+                    resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                    accessToken   = "",
+                    expireDate    = null,
+                    data          = null
+                )
+            )
+        }
+    }
+
+    /** 차량 검색 팝업 조회 */
+    @PostMapping("/getVehicleSearchList")
+    fun getVehicleSearchList(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
+        LOG.info("---> getVehicleSearchList : $paramMap")
+        return try {
+            ResponseEntity.ok(commonService.getVehicleSearchList(paramMap))
+        } catch (e: Exception) {
+            LOG.error("getVehicleSearchList error : ${e.message}")
+            ResponseEntity.status(500).body(
+                Response(
+                    resultCode    = "9999",
+                    resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                    accessToken   = "",
+                    expireDate    = null,
+                    data          = null
+                )
+            )
+        }
+    }
+
+    /** 존 검색 팝업 조회 */
+    @PostMapping("/getZoneSearchList")
+    fun getZoneSearchList(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
+        LOG.info("---> getZoneSearchList : $paramMap")
+        return try {
+            ResponseEntity.ok(commonService.getZoneSearchList(paramMap))
+        } catch (e: Exception) {
+            LOG.error("getZoneSearchList error : ${e.message}")
+            ResponseEntity.status(500).body(
+                Response(
+                    resultCode    = "9999",
+                    resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                    accessToken   = "",
+                    expireDate    = null,
+                    data          = null
+                )
+            )
+        }
+    }
+
+    /** 거래처 검색 팝업 조회 */
+    @PostMapping("/getClientSearchList")
+    fun getClientSearchList(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
+        LOG.info("---> getClientSearchList : $paramMap")
+        return try {
+            ResponseEntity.ok(commonService.getClientSearchList(paramMap))
+        } catch (e: Exception) {
+            LOG.error("getClientSearchList error : ${e.message}")
+            ResponseEntity.status(500).body(
+                Response(
+                    resultCode    = "9999",
+                    resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                    accessToken   = "",
+                    expireDate    = null,
+                    data          = null
+                )
+            )
+        }
+    }
+
+    /** 로케이션 검색 팝업 조회 */
+    @PostMapping("/getLocSearchList")
+    fun getLocSearchList(@RequestBody paramMap: Map<String, Any>): ResponseEntity<Response> {
+        LOG.info("---> getLocSearchList : $paramMap")
+        return try {
+            ResponseEntity.ok(commonService.getLocSearchList(paramMap))
+        } catch (e: Exception) {
+            LOG.error("getLocSearchList error : ${e.message}")
+            ResponseEntity.status(500).body(
+                Response(
+                    resultCode    = "9999",
+                    resultMessage = "서버 오류가 발생했습니다. 담당자에게 문의하여 주십시오.",
+                    accessToken   = "",
+                    expireDate    = null,
+                    data          = null
+                )
+            )
+        }
+    }
 }
