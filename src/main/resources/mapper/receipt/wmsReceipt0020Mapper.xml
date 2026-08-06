@@ -12,6 +12,7 @@
              , TO_CHAR(TO_DATE(H.IN_EXPECTED_DATE, 'YYYYMMDD'), 'YYYY-MM-DD')                   AS IN_EXPECTED_DATE     -- 입고예정일
              , H.IN_EXPECTED_NO                                                                                         -- 입고예정번호
              , D.IN_EXPECTED_SEQ                                                                                        -- 입고예정순번
+             , H.STATUS                                                                         AS TOTAL_STATUS         -- 입고전체상태(헤더)
              , D.STATUS                                                                                                 -- 입고상태
              , H.RECEIPT_CLS_CD                                                                                         -- 입고구분
              , H.RECEIPT_TYPE                                                                                           -- 입고유형
