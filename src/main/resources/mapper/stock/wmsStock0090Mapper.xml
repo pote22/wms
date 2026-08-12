@@ -5,6 +5,64 @@
 <mapper namespace="com.cjlogistics.wms.stock.mapper.WmsStock0090Mapper">
 
     <select id="selectItrnList" parameterType="map" resultType="map">
+        SELECT SRVC_CD                                                                              -- 고객사
+             , WH_CD                                                                                -- 센터
+             , ITRN_KEY                                                                             -- 트랜잭션 KEY
+             , TRAN_TYPE                                                                            -- 트랜잭션 유형
+             , EFFECTIVE_DATE                                                                       -- 작업일자
+             , PROD_CD                                                                              -- 품목코드
+             , COALESCE(NULLIF(WMS.FN_GET_PROD_NM(SRVC_CD, WH_CD, PROD_CD), ''), '') AS PROD_NM     -- 품목명
+             , LOT_NO                                                                               -- 입고일자(YYYYMMDD)
+             , WMS.FN_GET_CONVERT_LOT_NO(LOT_NO) AS PROD_LOT_NO                                     -- 생산로트코드
+             , FROM_ZONE_CD                                                                         -- 이동 전 Zone 코드
+             , FROM_LOC_CD                                                                          -- 이동 전 Location 코드
+             , FROM_ID                                                                              -- 이동 전 바코드
+             , TO_ZONE_CD                                                                           -- 이동 후 Zone 코드
+             , TO_LOC_CD                                                                            -- 이동 후 Location 코드  
+             , VENDOR_CD                                                                            -- 거래처코드
+             , VENDOR_NM                                                                            -- 거래처명                                
+             , TO_ID                                                                                -- 이동 후 바코드
+             , SOURCE_KEY                                                                           -- 지시번호
+             , QTY                                                                                  -- 수량
+             , CASE WHEN TRAN_TYPE = 'MV' THEN CASE WHEN TRAN_DIVISION = '1' THEN 0
+                                                    WHEN TRAN_DIVISION = '2' THEN -QTY
+                                                    ELSE 0
+                                                END 	
+                    WHEN TRAN_TYPE = 'MR' THEN 0
+                    ELSE QTY
+                END AS REAL_QTY                                                                     -- 실수량
+            , TRAN_DIVISION                                                                         -- 트랜잭션 구분
+            , COALESCE(NULLIF(WMS.FN_GET_USER_NM(REG_ID),''),'') AS REG_ID                          -- 등록자
+            , TO_CHAR(REG_DATE,'YYYY-MM-DD') AS REG_DATE                                            -- 등록일시
+            , COALESCE(NULLIF(WMS.FN_GET_USER_NM(UPD_ID),''),'') AS UPD_ID                          -- 수정자
+            , TO_CHAR(UPD_DATE,'YYYY-MM-DD') AS UPD_DATE                                            -- 수정일시
+        FROM WMS.TB_ITRN
+        WHERE 1 = 1
+          AND SRVC_CD       = #{srvcCd}
+          AND WH_CD         = #{whCd}
+          <if test="strDate != null and strDate != ''">
+            AND EFFECTIVE_DATE <![CDATA[>=]]> #{strDate}
+          </if>
+          <if test="endDate != null and endDate != ''">
+            AND EFFECTIVE_DATE <![CDATA[<=]]> #{endDate}
+          </if>
+          <if test="prodCd != null and prodCd != ''">
+            AND PROD_CD = #{prodCd}
+          </if>
+          <if test="lotNo != null and lotNo != ''">
+            AND LOT_NO = #{lotNo} 
+          </if>
+          <if test="itrnKey != null and itrnKey != ''">
+            AND ITRN_KEY LIKE '%' || #{itrnKey} || '%'
+          </if>
+          <if test="tranType != null and tranType != ''">
+            AND TRAN_TYPE = #{tranType}
+          </if>
+          <if test="sourceKey != null and sourceKey != ''">
+            AND sourceKey LIKE '%' || #{sourceKey} || '%'
+          </if>
+          <if test="barcode != null and barcode != ''">
+            AND TO_ID LIKE '%' || #{barcode} || '%'
+          </if>
     </select>
-
 </mapper>
